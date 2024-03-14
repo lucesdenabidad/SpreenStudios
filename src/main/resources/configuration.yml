@@ -1,0 +1,4 @@
+world:
+  spawnpoint: '0 100 0'
+  nether: false
+  end: false
