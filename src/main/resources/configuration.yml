@@ -1,4 +1,26 @@
-world:
-  spawnpoint: '0 100 0'
-  nether: false
-  end: false
+toggleable:
+  CHAT: true
+  COMMANDS: true
+  PVP: true
+  DAMAGE: true
+  INTERACTIONS: true
+  BREAK: true
+  PLACE: true
+  DROP: true
+  PICKUP: true
+  INVENTORY: true
+  FOOD: true
+  HEALTH: true
+  EXP: true
+  DAMAGE_ENTITIES: true
+  DAMAGE_FALL: true
+  SPAWN: true
+  MOBS: true
+  VOID_DAMAGE: true
+
+whitelist:
+  status: false
+  list:
+    - datta
+    - Badendingg
+    - idpabloski
