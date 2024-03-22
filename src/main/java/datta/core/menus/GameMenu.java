@@ -6,6 +6,7 @@ import co.aikar.commands.annotation.CommandPermission;
 import datta.core.Core;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
+import datta.core.content.weapons.GameItem;
 import datta.core.games.CommandGame;
 import datta.core.games.Game;
 import org.bukkit.Bukkit;
@@ -17,7 +18,6 @@ import org.bukkit.inventory.ItemStack;
 import java.util.List;
 
 import static datta.core.Core.menuBuilder;
-import static datta.core.content.builders.ColorBuilder.locationToString;
 import static datta.core.content.builders.MenuBuilder.slot;
 
 public class GameMenu extends BaseCommand {
@@ -30,66 +30,129 @@ public class GameMenu extends BaseCommand {
         menuBuilder.createMenu(player, "Menu de juegos", 9 * 5, false);
         menuBuilder.setContents(player, () -> {
 
+            int[] gameSlots = {12, 13, 14, 15, 21, 22, 23, 24, 29, 30, 31, 32, 33};
+            int index = 0;
+
             for (Game game : commandGame.gameList) {
+                String name = game.name();
                 ItemStack itemStack = game.menuItem();
+                Material type = itemStack.getType();
+
+                ItemStack build = new ItemBuilder(type, "&b" + name)
+                        .setLore("",
+                                "&7 Haz clic para abrir menú de juego",
+                                "&7 puedes Iniciar, Frenar, Pausar el juego",
+                                "&7 entre otras acciones.",
+                                "")
+                        .build();
+
                 int i = game.menuSlot();
 
-                menuBuilder.setItem(player, i, itemStack, () -> {
+                menuBuilder.setItem(player, gameSlots[index], build, () -> {
                     subMenu(player, game);
+                });
+
+                index++;
+            }
+
+            int[] slots = {0, 1, 10, 19, 28, 36, 37};
+
+            for (int slot : slots) {
+                menuBuilder.setItem(player, slot, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE, "").build(), () -> {
                 });
             }
 
-            menuBuilder.setItem(player, slot(5, 5), new ItemBuilder(Material.BARRIER, "&cCerrar menú").build(), player::closeInventory);
+            menuBuilder.setItem(player, slot(1, 2), new ItemBuilder(Material.STICK, "&6→ &ePalos").addLore(
+                            "",
+                            "&7Haz clic para ver los palos creados.",
+                            "")
+                    .build(), () -> {
+                SticksMenu.open(player);
+            });
+
+            menuBuilder.setItem(player, slot(1, 3), new ItemBuilder(Material.COMPASS, "&5→ &dItem de Evento").addLore(
+                            "",
+                            "&7Haz click para obtener",
+                            "&7la herramienta de evento.",
+                            "")
+                    .build(), () -> {
+                new GameItem().getItem(player);
+            });
+
+            menuBuilder.setItem(player, slot(1, 4), new ItemBuilder(Material.PLAYER_HEAD, "&2→ &aElegir ganador").addLore(
+                            "",
+                            "&7Haz click para elegir",
+                            "&7el ganador del evento.",
+                            "")
+
+                    .setHeadUrl("61e974a2608bd6ee57f33485645dd922d16b4a39744ebab4753f4deb4ef782")
+                    .build(), () -> {
+                WinnerMenu.open(player, 1);
+            });
+
+            menuBuilder.setItem(player, slot(9, 5), new ItemBuilder(Material.PLAYER_HEAD, "&3→ &bOpciones").addLore(
+                            "",
+                            "&7Haz clic para ver opciones generales.",
+                            "")
+                            .setHeadUrl("933742118647add7a11e1379b8627bedc7548e2b5e44a19a729cc41a9d265ef")
+                    .build(), () -> {
+                OptionsMenu.open(player);
+            });
 
         });
     }
 
-
     public static void subMenu(Player player, Game game) {
         menuBuilder.createMenu(player, "Menu de " + game.name(), 9 * 5, false);
         menuBuilder.setContents(player, () -> {
-                    menuBuilder.setItem(player, slot(4, 2), new ItemBuilder(Material.PLAYER_HEAD, "&aIniciar juego")
-                            .addLore("", "&bInformación del juego:")
-                            .addLore(game.gameinfo())
-                            .addLore("", "&e› Clic para iniciar juego.")
-                            .setHeadUrl("67ca9d16aeceb729c139daa563d098724a8e8bfad4473518bc48647ea02d2476")
-                            .build(), game::start);
 
-                    menuBuilder.setItem(player, slot(5, 2), new ItemBuilder(Material.PLAYER_HEAD, "&6Pausar juego")
-                            .setLore("", "&fPausa el juego si esta iniciado.",
-                                    "",
-                                    "&c&l(!) &cPara esta accion el juego debe",
-                                    "&ctener configurado las acciones al pausar",
-                                    "",
-                                    "&e› Clic para pausar")
-                            .setHeadUrl("49c590dd3bec7c75f7bf46965c800baded138edf74837120472ee65d96b31688")
-                            .build(), () -> {
+            int[] slots = {0, 1, 10, 19, 28, 36, 37};
 
-                    });
+            for (int slot : slots) {
+                menuBuilder.setItem(player, slot, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE, "").build(), () -> {
+                });
+            }
 
-                    menuBuilder.setItem(player, slot(6, 2), new ItemBuilder(Material.PLAYER_HEAD, "&cTerminar juego")
-                            .setLore("", "&fFinaliza '" + game.name() + "' si esta iniciado.", "", "&e› Clic para finalizar")
-                            .setHeadUrl("ccc82dd91281a14a615d9b05bd5f97a9eea9266b9a1349e6b9fafb0ded318ff5")
-                            .build(), game::end);
+            menuBuilder.setItem(player, slot(1, 2), new ItemBuilder(Material.PLAYER_HEAD, "&aIniciar juego")
+                    .addLore("",
+                            "&7 Haz click para iniciar el juego",
+                            "&7 ya configurado.",
+                            "")
+                    .setHeadUrl("67ca9d16aeceb729c139daa563d098724a8e8bfad4473518bc48647ea02d2476")
+                    .build(), game::start);
 
-                    menuBuilder.setItem(player, slot(2, 3), new ItemBuilder(Material.ENDER_PEARL, "&bIr al juego")
-                            .setLore("", "&fTeletransportate a ti al juego", " ", "&e› Clic para ir a " + locationToString(game.spawn()))
-                            .build(), () -> {
-                        Location spawn = game.spawn();
-                        player.teleport(spawn.toCenterLocation());
-                        subMenu(player, game);
-                    });
+            menuBuilder.setItem(player, slot(1, 3), new ItemBuilder(Material.PLAYER_HEAD, "&cTerminar juego")
+                    .setLore("",
+                            "&7 Haz click para finalizar el juego",
+                            "")
+                    .setHeadUrl("ccc82dd91281a14a615d9b05bd5f97a9eea9266b9a1349e6b9fafb0ded318ff5")
+                    .build(), game::end);
 
-                    menuBuilder.setItem(player, slot(3, 3), new ItemBuilder(Material.ENDER_EYE, "&bIr todos al juego")
-                            .setLore("", "&fTeltransporta a todos los jugadores al juego.", " ", "&e› Clic para ir a " + locationToString(game.spawn()))
-                            .build(), () -> {
-                        Location spawn = game.spawn();
-                        for (Player t : Bukkit.getOnlinePlayers()) {
-                            t.teleport(spawn.toCenterLocation());
-                        }
+            menuBuilder.setItem(player, slot(1, 4), new ItemBuilder(Material.ENDER_EYE, "&bIr todos al juego")
+                    .setLore("",
+                            "&7 Haz click para teletransportar a",
+                            "&7 todos los jugadores al juego",
+                            "&7 ideal para una explicacion previa.",
+                            " ")
+                    .build(), () -> {
+                Location spawn = game.spawn();
+                for (Player t : Bukkit.getOnlinePlayers()) {
+                    t.teleport(spawn.toCenterLocation());
+                }
 
-                        subMenu(player, game);
-                    });
+                subMenu(player, game);
+            });
+
+            menuBuilder.setItem(player, slot(4, 2), new ItemBuilder(Material.ENDER_PEARL, "&bIr al juego")
+                    .setLore("",
+                            "&7 Teletransportate solamente a ti",
+                            "&7 ala ubicacion del juego para verlo.",
+                            "")
+                    .build(), () -> {
+                Location spawn = game.spawn();
+                player.teleport(spawn.toCenterLocation());
+                subMenu(player, game);
+            });
 
             loadItems(player, game);
 
@@ -100,11 +163,11 @@ public class GameMenu extends BaseCommand {
     }
 
     public static void loadItems(Player player, Game game) {
-        int[] availableSlots = {28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43};
+        int[] availableSlots = {13, 14, 15, 16, 21, 22, 23, 24, 25, 30, 31, 32, 33, 34};
         int index = 0;
 
         List<MenuBuilder.MenuItem> menu = game.menuItems(player);
-        if (menu == null || menu.isEmpty()){
+        if (menu == null || menu.isEmpty()) {
             return;
         }
 

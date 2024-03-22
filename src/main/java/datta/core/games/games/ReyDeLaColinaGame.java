@@ -40,7 +40,7 @@ public class ReyDeLaColinaGame extends Game {
 
     @Override
     public Location spawn() {
-        return stringToLocation("310 3 492");
+        return stringToLocation("310 3 492 180 0");
     }
 
     @Override
@@ -133,7 +133,7 @@ public class ReyDeLaColinaGame extends Game {
                     }
                 }
             }
-        }.runTaskTimer(Core.getInstance(),0,20L);
+        }.runTaskTimer(Core.getInstance(),0,8L);
     }
 
     public void addPoints(Player player, int points){

@@ -1,16 +1,56 @@
 package datta.core.content.utils;
 
+import datta.core.Core;
 import datta.core.content.CoreTask;
 import datta.core.content.builders.FireworkBuilder;
 import datta.core.utils.SenderUtil;
 import org.bukkit.*;
+import org.bukkit.entity.Chicken;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static datta.core.content.builders.ColorBuilder.color;
 
 public class EventUtils {
+    public static Map<Player, String> COLORS = new HashMap<>();
+
+    public static void RemoveOrAddPlayerFromColor(Player player, String color) {
+        if (COLORS.containsKey(player)) {
+            COLORS.remove(player);
+        } else {
+            COLORS.put(player, color);
+        }
+    }
+
+    public static void addPlayerColor(Player player, String color) {
+        COLORS.put(player, color);
+    }
+
+    public static void removePlayerColor(Player player) {
+        COLORS.remove(player);
+    }
+
+    public static void clearCOLORS() {
+        COLORS.clear();
+    }
+
+    public static void removePlayersIsNotList(List<Player> list, boolean kick) {
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            EventPlayer eventPlayer = new EventPlayer(onlinePlayer);
+
+            if (eventPlayer.isStaff()) return;
+            if (!list.contains(onlinePlayer)) {
+                eliminate(onlinePlayer, kick);
+            }
+        }
+    }
+
 
     public static void eliminate(Player player, boolean kick) {
         World world = player.getWorld();
@@ -77,5 +117,76 @@ public class EventUtils {
     public static void heal(Player player) {
         player.setHealth(20);
         player.setFoodLevel(20);
+    }
+
+    public static void win(Player p) {
+        World world = p.getWorld();
+        int launchDelay = 10;
+        int time = 3;
+        int[] timer = {0};
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (timer[0] == time) {
+                    cancel();
+                }
+
+                timer[0]++;
+                winEffect(p);
+            }
+        }.runTaskTimer(Core.getInstance(), launchDelay, 5L);
+    }
+
+
+    public static void winEffect(Player p) {
+        int ending = 15;
+        for (byte b = 0; ending > b; b++) {
+            (new BukkitRunnable() {
+                public void run() {
+                    Location location = p.getLocation();
+                    final Chicken chicken = spawnChicken(location, random(-0.5D, 0.5D), 1.5D, random(-0.5D, 0.5D));
+                    chicken.getLocation().getWorld().playSound(chicken.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, 1.0F, 1.0F);
+                    new BukkitRunnable() {
+                        public void run() {
+                            if (chicken.isDead()) {
+                                Particle.DustOptions dustOptions = new Particle.DustOptions(Color.RED, 1.0F);
+                                chicken.getWorld().spawnParticle(Particle.REDSTONE, chicken.getLocation(), 50, 0.25F, 0.25F, 0.25F, dustOptions);
+                                chicken.getLocation().getWorld().playSound(chicken.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1.0F, 1.0F);
+                                cancel();
+                            } else {
+                                Particle.DustOptions dustOptions = new Particle.DustOptions(Color.RED, 1.0F);
+                                chicken.getWorld().spawnParticle(Particle.REDSTONE, chicken.getLocation(), 50, 0.25F, 0.25F, 0.25F, dustOptions);
+                            }
+                        }
+                    }.runTaskTimer(Core.getInstance(), 0L, 0L);
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            chicken.remove();
+                        }
+                    }.runTaskLater(Core.getInstance(), 20L * 5);
+                }
+            }).runTaskLater(Core.getInstance(), (b * 10));
+        }
+    }
+
+    public static double random(double paramDouble1, double paramDouble2) {
+        return paramDouble1 + ThreadLocalRandom.current().nextDouble() * (paramDouble2 - paramDouble1);
+    }
+
+
+    public static Chicken spawnChicken(Location paramLocation, double paramDouble1, double paramDouble2, double paramDouble3) {
+        Chicken chicken = paramLocation.getWorld().spawn(paramLocation, Chicken.class);
+        chicken.setVelocity(new Vector(paramDouble1, paramDouble2, paramDouble3));
+        return chicken;
+    }
+
+    public static void instantFirework(Location location){
+        FireworkBuilder fireworkBuilder = new FireworkBuilder()
+                .power(1)
+                .colors(Color.LIME,Color.GREEN,Color.WHITE);
+
+        fireworkBuilder.spawn(location);
     }
 }

@@ -33,6 +33,7 @@ import static datta.core.content.builders.ColorBuilder.stringToLocation;
 
 @CommandAlias("games")
 public class PuertasGame extends Game {
+    public static String TEXT = "&f¡Elige un portal!\n&f¡RAPIDO!";
     private final List<Cuboid> DOORS = Arrays.asList(
             new Cuboid(stringToLocation("19 109 271"), stringToLocation("19 114 269")),
             new Cuboid(stringToLocation("19 114 283"), stringToLocation("19 109 285")),
@@ -55,7 +56,7 @@ public class PuertasGame extends Game {
 
     );
 
-    private List<Player> WINNER_LIST = new ArrayList<>();
+    public static final List<Player> WINNER_LIST = new ArrayList<>();
     private final Location WAITING_LOCATION = stringToLocation("1 100 295");
 
     private BukkitTask task;
@@ -103,15 +104,7 @@ public class PuertasGame extends Game {
                     teleportPlayerToParkour(t);
                 }
 
-                TimerService.actionbarTimer(breakAt, () -> {
-                    for (Player t : Bukkit.getOnlinePlayers()) {
-                        SenderUtil.sendTitle(t, "&e&l¡Rompiendo cristales!", "&8» &a¡BUENA SUERTE! &8«");
-                        SenderUtil.sendSound(t, Sound.ENTITY_PARROT_IMITATE_WITHER, 1, 1);
-                    }
-
-                    sendBar("&a¡Buena suerte!");
-                    breakAllGlass();
-                });
+                TimerService.actionbarTimer(breakAt, this::breakAllGlass);
             });
         });
     }
@@ -120,7 +113,6 @@ public class PuertasGame extends Game {
     @Override
     public void end() {
         end(() -> {
-
             setPortalStatus(false);
 
             if (task != null)
@@ -134,17 +126,13 @@ public class PuertasGame extends Game {
     public List<String> scoreboard() {
         return new ArrayList<>(List.of(
                 "",
-                "&fnada",
+                "&7 ¡Elige un portal y",
+                "&7 completa el desafio!",
+                "",
+                "&f Pasantes: &b%core_pasantes%",
                 ""));
     }
 
-    @Subcommand("puertas test")
-    public void testTeleport(Player player, int i) {
-        quitPlayerFromParkour(player);
-
-        joinPlayerToParkour(player, i);
-        teleportPlayerToParkour(player);
-    }
 
     @Override
     public List<MenuBuilder.MenuItem> menuItems(Player player) {

@@ -4,15 +4,21 @@ import co.aikar.commands.BaseCommand;
 import datta.core.Core;
 import datta.core.content.CoreTask;
 import datta.core.content.builders.MenuBuilder;
+import datta.core.content.utils.EventPlayer;
 import datta.core.services.list.ScoreboardService;
 import datta.core.services.list.ScreenColorService;
+import datta.core.services.list.ToggleService;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,6 +82,17 @@ public abstract class Game extends BaseCommand implements Listener {
     }
 
     public void game(Runnable run) {
+
+        for (Player t : Bukkit.getOnlinePlayers()) {
+            EventPlayer e = new EventPlayer(t);
+            if (!e.isStaff()) {
+                t.getInventory().clear();
+            }
+            for (PotionEffect activePotionEffect : t.getActivePotionEffects()) {
+                t.removePotionEffect(activePotionEffect.getType());
+            }
+        }
+
         teleportSpawn(() -> {
             registerGameEvents(this);
             loadScoreboard();
@@ -83,9 +100,37 @@ public abstract class Game extends BaseCommand implements Listener {
         });
     }
 
-    public void end(Runnable runnable){
+    public void end(Runnable runnable) {
+        ToggleService.Toggleable.PVP.set(false);
+        ToggleService.Toggleable.PVP.save();
+
+        ToggleService.Toggleable.KICK_ON_DEATH.set(false);
+        ToggleService.Toggleable.KICK_ON_DEATH.save();
+
+        for (World world : Bukkit.getWorlds()) {
+            for (Entity entity : world.getEntities()) {
+                if (entity.getType() != EntityType.PLAYER) {
+                    entity.remove();
+                }
+            }
+        }
+        ScoreboardService service = (ScoreboardService) Core.getInstance().commandService.serviceFromName("scoreboard");
+        service.changeScore(Core.getInstance().defaultTitle, Core.getInstance().defaultLines);
+
+        for (Player t : Bukkit.getOnlinePlayers()) {
+            EventPlayer e = new EventPlayer(t);
+            if (!e.isStaff()) {
+                t.getInventory().clear();
+            }
+
+            for (PotionEffect activePotionEffect : t.getActivePotionEffects()) {
+                t.removePotionEffect(activePotionEffect.getType());
+            }
+        }
+
         unregisterGameEvents(this);
         runnable.run();
+
     }
     private void registerGameEvents(Game game) {
         Core.getInstance().getServer().getPluginManager().registerEvents(game, Core.getInstance());

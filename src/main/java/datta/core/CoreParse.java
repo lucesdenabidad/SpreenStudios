@@ -1,5 +1,8 @@
 package datta.core;
 
+import datta.core.content.utils.EventPlayer;
+import datta.core.games.games.ElSueloEsLavaGame;
+import datta.core.games.games.PuertasGame;
 import datta.core.games.games.ReyDeLaColinaGame;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
@@ -29,6 +32,8 @@ public class CoreParse extends PlaceholderExpansion {
     @Override
     public @NotNull String onRequest(OfflinePlayer offlinePlayer, String param) {
 
+        EventPlayer eventPlayer = new EventPlayer(offlinePlayer.getPlayer());
+
         if (param.equalsIgnoreCase("prefix")) {
             return Core.getInstance().prefix;
         }
@@ -45,9 +50,21 @@ public class CoreParse extends PlaceholderExpansion {
                     .count());
         }
 
+        if (param.equalsIgnoreCase("puertaspasantes")) {
+            return String.valueOf(PuertasGame.TEXT);
+        }
+        if (param.equalsIgnoreCase("pasantes")) {
+            return String.valueOf(PuertasGame.WINNER_LIST.size());
+        }
+
+        if (param.equalsIgnoreCase("lavastatus")) {
+            return String.valueOf(ElSueloEsLavaGame.level);
+        }
+
         if (param.equalsIgnoreCase("points")) {
             return ReyDeLaColinaGame.getPlayerTop(offlinePlayer.getPlayer());
         }
+
         if (param.contains("top_")) {
             int lastCharacterIndex = param.length() - 1;
             char lastChar = param.charAt(lastCharacterIndex); // Obtener el último carácter
@@ -55,6 +72,11 @@ public class CoreParse extends PlaceholderExpansion {
 
             return getTop(lastCharacter);
         }
+
+        if (param.equalsIgnoreCase("color")){
+            return eventPlayer.color();
+        }
+
         return param;
     }
 }

@@ -33,7 +33,7 @@ public class PunchStick extends Stick {
 
     @Override
     public ItemStack item() {
-        return new ItemBuilder(Material.STICK, "&9» &f Palo de empuje")
+        return new ItemBuilder(Material.STICK, "&9Palito de pedos")
                 .addEnchant(Enchantment.LUCK, 1)
                 .hideAll(true)
                 .build();

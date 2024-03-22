@@ -4,7 +4,8 @@ import co.aikar.commands.annotation.*;
 import datta.core.Core;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.configuration.Configuration;
-import datta.core.content.utils.bukkit.player.EventPlayer;
+import datta.core.content.utils.EventUtils;
+import datta.core.content.utils.EventPlayer;
 import datta.core.services.Service;
 import datta.core.utils.SenderUtil;
 import lombok.Getter;
@@ -119,8 +120,7 @@ public class ToggleService extends Service {
     @EventHandler
     public void onPvP(EntityDamageByEntityEvent e) {
         if (e.getDamager() instanceof Player p && e.getEntity() instanceof Player p2) {
-        EventPlayer eventPlayer = new EventPlayer(p);
-        if (eventPlayer.isStaff()) return;
+            EventPlayer eventPlayer = new EventPlayer(p);
 
             Toggleable category = Toggleable.PVP;
             if (!category.isStatus()) {
@@ -321,6 +321,18 @@ public class ToggleService extends Service {
         }
     }
 
+    @EventHandler
+    public void death(PlayerDeathEvent e) {
+        Player player = e.getPlayer();
+        Toggleable category = Toggleable.KICK_ON_DEATH;
+
+        if (category.isStatus()) {
+            EventUtils.eliminate(player, true);
+            e.setCancelled(true);
+        }
+    }
+
+
     @Getter
     public enum Toggleable {
         CHAT,
@@ -340,6 +352,7 @@ public class ToggleService extends Service {
         DAMAGE_FALL,
         SPAWN,
         MOBS,
+        KICK_ON_DEATH,
         VOID_DAMAGE;
 
         private boolean status;

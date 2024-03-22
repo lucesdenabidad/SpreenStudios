@@ -45,7 +45,7 @@ public class ScoreboardService extends Service {
     public void onLoad() {
         register(true, true);
 
-        scoreHolder.start(0L, 60L);
+        scoreHolder.start(0L, 5L);
     }
 
     @Override
@@ -71,7 +71,7 @@ public class ScoreboardService extends Service {
         this.lines = lines;
 
         scoreHolder = new ScoreHolder(instance(),title,lines);
-        scoreHolder.start(0,20L);
+        scoreHolder.start(0,5L);
         Core.info("Cambiando scoreboard...");
     }
 }

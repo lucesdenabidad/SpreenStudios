@@ -11,6 +11,8 @@ public class PlayerDeathListener implements Listener {
 
 
     String MSG = " ha muerto.";
+
+
     @EventHandler
     public void death(PlayerDeathEvent e){
         Player player = e.getPlayer();

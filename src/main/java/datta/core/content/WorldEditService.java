@@ -9,6 +9,7 @@ import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
+import datta.core.content.utils.build.consts.Cuboid;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -157,6 +158,31 @@ public class WorldEditService {
          for (int j = 0; j < 2; j++) {
             Block block = world.getBlockAt(corner.getBlockX() + i, corner.getBlockY(), corner.getBlockZ() + j);
             block.setType(material);
+         }
+      }
+   }
+
+   public static void replace(Cuboid cuboid, Material targetMaterial, Material newMaterial) {
+      Location point1 = cuboid.getPoint1();
+      Location point2 = cuboid.getPoint2();
+
+      World world = point1.getWorld();
+
+      int minX = Math.min(point1.getBlockX(), point2.getBlockX());
+      int minY = Math.min(point1.getBlockY(), point2.getBlockY());
+      int minZ = Math.min(point1.getBlockZ(), point2.getBlockZ());
+      int maxX = Math.max(point1.getBlockX(), point2.getBlockX());
+      int maxY = Math.max(point1.getBlockY(), point2.getBlockY());
+      int maxZ = Math.max(point1.getBlockZ(), point2.getBlockZ());
+
+      for (int x = minX; x <= maxX; x++) {
+         for (int y = minY; y <= maxY; y++) {
+            for (int z = minZ; z <= maxZ; z++) {
+               Block block = world.getBlockAt(x, y, z);
+               if (block.getType() == targetMaterial && block.getType() != newMaterial) {
+                  block.setType(newMaterial);
+               }
+            }
          }
       }
    }

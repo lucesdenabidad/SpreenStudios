@@ -2,19 +2,22 @@ package datta.core.games.games;
 
 import co.aikar.commands.annotation.Subcommand;
 import datta.core.Core;
+import datta.core.content.WorldEditService;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
+import datta.core.content.utils.EventUtils;
+import datta.core.content.utils.build.consts.Cuboid;
+import datta.core.content.utils.EventPlayer;
 import datta.core.games.Game;
+import datta.core.services.list.SitService;
 import datta.core.utils.SenderUtil;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.inventory.PlayerInventory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,7 +35,7 @@ public class SillitasGame extends Game {
 
     @Override
     public Location spawn() {
-        return stringToLocation("-71 100 358");
+        return stringToLocation("552 3 449");
     }
 
     @Override
@@ -43,24 +46,29 @@ public class SillitasGame extends Game {
     @Override
     public void start() {
         game(() -> {
-            shuffleTask();
         });
     }
 
     @Subcommand("sillas end")
     @Override
     public void end() {
-        end(() ->{
-
-        if (task != null){
-        task.cancel();
-        }
+        end(() -> {
+            playOrStopMusic(defaultStatus);
+            removeChairs();
         });
     }
 
     @Override
     public List<String> scoreboard() {
-        return null;
+        return new ArrayList<>(List.of(
+                "",
+                "&7 Cuando suene",
+                "&7 la musica debes",
+                "&7 subirte a una silla",
+                "&7 de lo contrario",
+                "&7 seras eliminado.",
+                ""
+        ));
     }
 
     @Override
@@ -71,10 +79,17 @@ public class SillitasGame extends Game {
                     shuffle(materials(), 2);
                 }),
 
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.OAK_STAIRS, "&eGenerar Silla").build(), this::spawnChair),
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.LIGHTNING_ROD, "&eGenerar Silla").build(), this::spawnChair),
 
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.CLOCK, "&aIniciar Ronda").build(), this::game),
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.CLOCK, "&cEliminar jugadores").build(), this::removePlayers)
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.LIME_DYE, "&aIniciar Ronda").build(), this::game),
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.RED_DYE, "&cEliminar jugadores").build(), this::removePlayers),
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.MUSIC_DISC_5, "&eMusica").build(), () -> {
+                    playOrStopMusic(!defaultStatus);
+                }),
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.NETHER_STAR, "&eObtener items").build(), () -> {
+                    getItems(player);
+                })
+
         );
     }
 
@@ -91,32 +106,100 @@ public class SillitasGame extends Game {
         return slot(2, 2);
     }
 
-    BukkitTask task;
 
-    Location pos1 = stringToLocation("-77 98 362");
-    Location pos2 = stringToLocation("-92 98 354");
+    Location pos1 = stringToLocation("558 3 444");
+    Location pos2 = stringToLocation("546 3 454");
 
 
     public void game() {
-
-        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+        for (int i = 0; i < Bukkit.getOnlinePlayers().size() - 1; i++) {
             spawnChair();
         }
     }
 
-    public void spawnChair() {
-        Location location = genLocationInLocations(pos1.clone().add(0,1,0), pos2.clone().add(0,1,0));
-
-        Block block = location.getBlock();
-        block.setType(Material.DRIED_KELP_BLOCK);
+    @EventHandler
+    public void interacte(PlayerInteractEvent event) {
+        if (event.hasBlock()){
+            Player player = event.getPlayer();
+            Block clickedBlock = event.getClickedBlock();
+            if (clickedBlock.getType().equals(Material.LIGHTNING_ROD)){
+                if (!defaultStatus){
+                    player.sendMessage("&cLa musica esta sonando!");
+                    event.setCancelled(true);
+                }
+            }
+        }
     }
 
-    public void removePlayers(){
+    List<MenuBuilder.MenuItem> menuItems = new ArrayList<>(List.of(
+            new MenuBuilder.MenuItem(new ItemBuilder(Material.LIME_DYE, "&aPrender Musica").build(), () -> {
+                playOrStopMusic(true);
+            }),
+
+            new MenuBuilder.MenuItem(new ItemBuilder(Material.RED_DYE, "&cApagar Musica").build(), () -> {
+                playOrStopMusic(false);
+            }),
+
+            new MenuBuilder.MenuItem(new ItemBuilder(Material.ARMOR_STAND, "&aColocar sillas").build(), this::game),
+            new MenuBuilder.MenuItem(new ItemBuilder(Material.TNT_MINECART, "&cQuitar sillas").build(), this::removeChairs),
+            new MenuBuilder.MenuItem(new ItemBuilder(Material.BARRIER, "&cEliminar jugadores").build(), this::removePlayers)
+    ));
+
+    public void getItems(Player player) {
+        PlayerInventory inventory = player.getInventory();
+        for (MenuBuilder.MenuItem menuItem : menuItems) {
+            inventory.addItem(menuItem.getItemStack());
+        }
+
+        ItemStack itemStack = new ItemBuilder(Material.LIGHTNING_ROD, "&eSilla").build();
+        inventory.addItem(itemStack);
+    }
+
+    @EventHandler
+    public void interact(PlayerInteractEvent event){
+        Player player = event.getPlayer();
+        if (event.hasItem()){
+            ItemStack item = event.getItem();
+
+            for (MenuBuilder.MenuItem menuItem : menuItems) {
+                if (item.isSimilar(menuItem.getItemStack())){
+                    menuItem.executeAction(player);
+                    event.setCancelled(true);
+                    break;
+                }
+            }
+        }
+    }
+
+    public void removeChairs() {
+        Cuboid cuboid = new Cuboid("546 3 454 558 3 444");
+        WorldEditService.replace(cuboid, Material.LIGHTNING_ROD, Material.AIR);
+    }
+
+    public void spawnChair() {
+        Cuboid cuboid = new Cuboid("546 3 454 558 3 444");
+        Location location = genLocationInLocations(cuboid.getPoint1(), cuboid.getPoint2());
+
+        Block block = location.getBlock();
+        block.setType(Material.LIGHTNING_ROD);
+
+        for (Player t : Bukkit.getOnlinePlayers()) {
+            SenderUtil.sendSound(t, Sound.BLOCK_NOTE_BLOCK_BANJO, 1, 2);
+        }
+    }
+
+    public void removePlayers() {
+        SitService sitService = (SitService) Core.getInstance().commandService.serviceFromName("sit");
         for (Player p : Bukkit.getOnlinePlayers()) {
-            if (!p.isInsideVehicle()){
-                SenderUtil.sendMessage(p, "&c• &fSin silla!");
+            EventPlayer e = new EventPlayer(p);
+            if (e.isStaff()) return;;
+
+            if (!p.isInsideVehicle()) {
+                EventUtils.eliminate(p, true);
             } else {
-                SenderUtil.sendMessage(p, "&a• &fCon silla!");
+                Block block = p.getLocation().getBlock();
+                block.setType(Material.AIR);
+                p.leaveVehicle();
             }
         }
     }
@@ -145,17 +228,7 @@ public class SillitasGame extends Game {
 
     private static boolean isEmptyLocation(Location location) {
         Block block = location.getBlock();
-        return block.getType() == Material.AIR;
-    }
-
-
-    public void shuffleTask() {
-        task = new BukkitRunnable() {
-            @Override
-            public void run() {
-                shuffle(materials(), 2);
-            }
-        }.runTaskTimer(Core.getInstance(), 0, 20L);
+        return block.getType() == Material.AIR || block.getType() == Material.LIGHT;
     }
 
 
@@ -208,6 +281,21 @@ public class SillitasGame extends Game {
         return list;
     }
 
+    boolean defaultStatus = false;
+    public void playOrStopMusic(boolean isPlayingSound) {
+        Sound sound = Sound.MUSIC_DISC_WAIT;
+
+        if (isPlayingSound) {
+            for (Player player : Bukkit.getOnlinePlayers())
+                player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
+
+        } else {
+            for (Player player : Bukkit.getOnlinePlayers())
+                player.stopSound(sound);
+        }
+
+        defaultStatus = isPlayingSound;
+    }
 
     private void assignMaterial(Location location, Material material, int pattern) {
         World world = location.getWorld();

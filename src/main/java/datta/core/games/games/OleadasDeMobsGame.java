@@ -7,8 +7,8 @@ import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
 import datta.core.content.utils.EventUtils;
 import datta.core.games.Game;
-import datta.core.services.list.ScoreboardService;
 import datta.core.services.list.TimerService;
+import datta.core.services.list.ToggleService;
 import datta.core.utils.SenderUtil;
 import org.bukkit.*;
 import org.bukkit.boss.BarColor;
@@ -57,7 +57,7 @@ public class OleadasDeMobsGame extends Game {
         PlayerInventory inventory = player.getInventory();
         heal(player);
 
-        ItemStack sword = new ItemBuilder(Material.STONE_SWORD, "&eEspada")
+        ItemStack sword = new ItemBuilder(Material.IRON_SWORD, "&eEspada")
                 .addEnchant(Enchantment.DURABILITY, 5)
                 .hideAll(true)
                 .build();
@@ -81,6 +81,9 @@ public class OleadasDeMobsGame extends Game {
     @Override
     public void start() {
         game(() -> {
+            ToggleService.Toggleable.KICK_ON_DEATH.set(true);
+            ToggleService.Toggleable.KICK_ON_DEATH.save();
+
             TimerService.bossBarTimer("&a(!) &fTeletransportando en &e{time} ⌚", BarColor.PURPLE, BarStyle.SOLID, 10, () -> {
 
                 for (Player t : Bukkit.getOnlinePlayers()) {
@@ -102,7 +105,6 @@ public class OleadasDeMobsGame extends Game {
     @Override
     public void end() {
         end(() -> {
-
             if (task != null) {
                 task.cancel();
             }
@@ -125,6 +127,13 @@ public class OleadasDeMobsGame extends Game {
     @Override
     public List<MenuBuilder.MenuItem> menuItems(Player player) {
         return List.of(
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.ZOMBIE_SPAWN_EGG, "&eGenerar 10 Zombies").build(), () ->{
+                    genMobs(10, EntityType.ZOMBIE);
+                }),
+
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.VINDICATOR_SPAWN_EGG, "&eGenerar 5 Vindicator").build(), () ->{
+                    genMobs(5, EntityType.VINDICATOR);
+                })
 
         );
     }
@@ -137,22 +146,6 @@ public class OleadasDeMobsGame extends Game {
                 .addLore("", "&aClic para ver.")
                 .build();
     }
-
-
-
-    @Subcommand("mobs scoreboardcancel")
-    public void loadcancel() {
-        ScoreboardService service = (ScoreboardService) Core.getInstance().commandService.serviceFromName("scoreboard");
-
-        String defaultTitle = Core.getInstance().defaultTitle;
-        String ip = Core.getInstance().defaultLines.get(Core.getInstance().defaultLines.size() - 1);
-
-        List<String> lines = new ArrayList<>(scoreboard());
-        lines.add(ip);
-
-        service.changeScore(defaultTitle, lines);
-    }
-
 
     @Subcommand("mobs genmobs")
     public void genMobs(int count, EntityType type) {

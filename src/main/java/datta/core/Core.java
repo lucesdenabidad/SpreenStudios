@@ -7,7 +7,9 @@ import datta.core.content.builders.MenuBuilder;
 import datta.core.content.configuration.Configuration;
 import datta.core.content.configuration.ConfigurationManager;
 import datta.core.content.portals.PortalManager;
+import datta.core.content.weapons.GameItem;
 import datta.core.content.weapons.Stick;
+import datta.core.content.weapons.Weapon;
 import datta.core.content.weapons.sticks.KickStick;
 import datta.core.content.weapons.sticks.KillStick;
 import datta.core.content.weapons.sticks.PunchStick;
@@ -91,10 +93,14 @@ public class Core extends JavaPlugin {
         commandManager.registerCommand(new SpeedCMD());
         commandManager.registerCommand(new CopyBlockCMD());
         commandManager.registerCommand(new GamesCommand());
+        commandManager.registerCommand(new ColorCMD());
+        commandManager.registerCommand(new TpallCMD());
 
         Stick.registerStick(new PunchStick());
         Stick.registerStick(new KickStick());
         Stick.registerStick(new KillStick());
+        Weapon.register(
+                new GameItem());
 
         listener(new PlayerQuitListener());
         listener(new PlayerDeathListener());
@@ -107,15 +113,14 @@ public class Core extends JavaPlugin {
         commandManager.getLocales().setDefaultLocale(Locales.SPANISH);
 
         coreParse.register();
+        stopGames();
     }
 
     @Override
     public void onDisable() {
 
         commandService.unloadServices();
-        for (Game game : commandGame.gameList) {
-            game.end();
-        }
+        stopGames();
         coreParse.unregister();
     }
 
@@ -135,5 +140,14 @@ public class Core extends JavaPlugin {
         toggleable.set(value);
         toggleable.save();
         info(toggleable.name() + " se cambio a &e"+value+"&f.");
+    }
+
+    public void stopGames() {
+        for (Game game : commandGame.gameList) {
+            game.end();
+        }
+
+        ToggleService.Toggleable.PVP.set(false);
+        ToggleService.Toggleable.PVP.save();
     }
 }

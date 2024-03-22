@@ -29,7 +29,7 @@ public class KillStick extends Stick {
 
     @Override
     public ItemStack item() {
-        return new ItemBuilder(Material.STICK, "&c» &fPalo asesino")
+        return new ItemBuilder(Material.STICK, "&cPalito asesino")
                 .addEnchant(Enchantment.LUCK, 1)
                 .hideAll(true)
                 .build();

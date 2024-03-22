@@ -41,7 +41,7 @@ public class SitService extends Service {
         register(true, false);
     }
 
-    List<Material> allowedChairs = List.of(Material.DRIED_KELP_BLOCK);
+    List<Material> allowedChairs = List.of(Material.LIGHTNING_ROD);
     List<Block> blockContainsPlayer = new ArrayList<>();
 
     @EventHandler

@@ -31,7 +31,7 @@ public class KickStick extends Stick {
 
     @Override
     public ItemStack item() {
-        return new ItemBuilder(Material.STICK, "&e» &fPalo expulsador")
+        return new ItemBuilder(Material.STICK, "&dPalito asesinador")
                 .addEnchant(Enchantment.LUCK, 1)
                 .hideAll(true)
                 .build();

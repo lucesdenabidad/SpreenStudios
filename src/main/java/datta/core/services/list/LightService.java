@@ -44,7 +44,10 @@ public class LightService extends Service {
 
     @Override
     public void onUnload() {
-        task.cancel();
+        if (task != null) {
+
+            task.cancel();
+        }
     }
 
     @CommandPermission("spreenstudios.lights")
