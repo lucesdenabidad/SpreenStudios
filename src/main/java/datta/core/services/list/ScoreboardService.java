@@ -45,23 +45,19 @@ public class ScoreboardService extends Service {
     public void onLoad() {
         register(true, true);
 
-        scoreHolder.start(0L, 5L);
+        changeScore(title, lines);
     }
 
     @Override
     public void onUnload() {
-        register(true, true);
-        scoreHolder.task.cancel();
+        if (scoreHolder.task != null) scoreHolder.task.cancel();
 
-        for (Player t : Bukkit.getOnlinePlayers()) {
-            scoreHolder.removePlayer(t);
-        }
+        scoreHolder.hideScoreboard();
     }
 
 
-
     public void changeScore(String title, List<String> lines) {
-        scoreHolder.task.cancel();
+        if (scoreHolder.task != null) scoreHolder.task.cancel();
 
         for (Player t : Bukkit.getOnlinePlayers()) {
             scoreHolder.removePlayer(t);
@@ -70,8 +66,13 @@ public class ScoreboardService extends Service {
         this.title = title;
         this.lines = lines;
 
-        scoreHolder = new ScoreHolder(instance(),title,lines);
-        scoreHolder.start(0,5L);
-        Core.info("Cambiando scoreboard...");
+        if (lines != null && !lines.isEmpty()) {
+            scoreHolder = new ScoreHolder(instance(), title, lines);
+            scoreHolder.start(0, 5L);
+        } else {
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                scoreHolder.removePlayer(onlinePlayer);
+            }
+        }
     }
 }

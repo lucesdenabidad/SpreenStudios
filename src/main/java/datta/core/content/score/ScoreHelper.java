@@ -45,7 +45,7 @@ public class ScoreHelper {
         sidebar = scoreboard.registerNewObjective("sidebar", "dummy");
         sidebar.setDisplaySlot(DisplaySlot.SIDEBAR);
         // Create Teams
-        for(int i=1; i<=15; i++) {
+        for (int i = 1; i <= 15; i++) {
             Team team = scoreboard.registerNewTeam("SLOT_" + i);
             team.addEntry(genEntry(i));
         }
@@ -53,6 +53,9 @@ public class ScoreHelper {
         players.put(player.getUniqueId(), this);
     }
 
+    public void removeScoreboard() {
+        scoreboard.clearSlot(DisplaySlot.SIDEBAR);
+    }
     public void setTitle(String title) {
         title = ChatColor.translateAlternateColorCodes('&', title);
         sidebar.setDisplayName(title.length()>32 ? title.substring(0, 32) : title);

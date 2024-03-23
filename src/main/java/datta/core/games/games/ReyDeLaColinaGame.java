@@ -1,38 +1,41 @@
 package datta.core.games.games;
 
 import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.CommandCompletion;
 import co.aikar.commands.annotation.Subcommand;
 import datta.core.Core;
+import datta.core.commands.CallCMD;
 import datta.core.content.WorldEditService;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
+import datta.core.content.utils.EventUtils;
 import datta.core.content.utils.build.consts.Cuboid;
 import datta.core.games.Game;
-import datta.core.services.list.TimerService;
 import datta.core.services.list.ToggleService;
+import datta.core.utils.SenderUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
+import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
-import static datta.core.Core.callSetting;
 import static datta.core.content.builders.ColorBuilder.color;
 import static datta.core.content.builders.ColorBuilder.stringToLocation;
-import static datta.core.content.builders.MenuBuilder.slot;
 
 @CommandAlias("games")
 public class ReyDeLaColinaGame extends Game {
     ItemStack itemStack = new ItemBuilder(Material.STICK, "&ePalo")
-            .addEnchant(Enchantment.KNOCKBACK,2)
+            .addEnchant(Enchantment.KNOCKBACK, 2)
             .build();
+
     @Override
     public String name() {
         return "Rey de la colina";
@@ -43,11 +46,6 @@ public class ReyDeLaColinaGame extends Game {
         return stringToLocation("310 3 492 180 0");
     }
 
-    @Override
-    public String[] gameinfo() {
-        return new String[0];
-    }
-
     int startAt = 5;
     BukkitTask task;
 
@@ -55,18 +53,28 @@ public class ReyDeLaColinaGame extends Game {
     @Override
     public void start() {
         game(() -> {
-            TimerService.bossBarTimer("&c(!) &fLas murallas seran destruidas en &e{time} ⌚", BarColor.PURPLE, BarStyle.SOLID, startAt, () -> {
-                placeOrBreakWalls(true);
-                for (Player t : Bukkit.getOnlinePlayers()) {
-                    t.getInventory().addItem(itemStack);
-                    callSetting(ToggleService.Toggleable.PVP, true);
-                }
-            });
+            CallCMD.callToggleable(ToggleService.Toggleable.PVP, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.FALL_DAMAGE, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.FOOD, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.PLACE, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.BREAK, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.INTERACTIONS, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.SPAWNING_MOBS, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.KICK_ON_DEATH, true);
+            CallCMD.callToggleable(ToggleService.Toggleable.TELEPORT_SPAWN_ON_JOIN, true);
+
+            placeOrBreakWalls(true);
+
+            for (Player t : Bukkit.getOnlinePlayers()) {
+                t.getInventory().addItem(itemStack);
+                SenderUtil.sendActionbar(t, "&aRecibiste un palo de empuje en tu inventario.", Sound.ENTITY_ITEM_PICKUP);
+            }
+
+            CallCMD.callToggleable(ToggleService.Toggleable.PVP, true, true);
 
             task();
         });
     }
-
 
     @Subcommand("reydelacolina end")
     @Override
@@ -85,6 +93,8 @@ public class ReyDeLaColinaGame extends Game {
                 "&7 &a• %core_top_1%",
                 "&7 &e• %core_top_2%",
                 "&7 &c• %core_top_3%",
+                "&7 &c• %core_top_4%",
+                "&7 &c• %core_top_5%",
                 "",
                 "&f Puntos: &e%core_points%",
                 ""
@@ -93,9 +103,21 @@ public class ReyDeLaColinaGame extends Game {
 
     public static Map<Player, Integer> pointsMap = new HashMap<>();
 
-    public static String getPlayerTop(Player player){
+    public static String getPlayerTop(Player player) {
         Integer i = pointsMap.getOrDefault(player, 0);
         return String.valueOf(i);
+    }
+
+    public static Player getTopPlayer(int top) {
+        List<Map.Entry<Player, Integer>> entryList = new ArrayList<>(pointsMap.entrySet());
+        entryList.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
+
+        if (top >= 1 && top <= entryList.size()) {
+            Map.Entry<Player, Integer> topEntry = entryList.get(top - 1);
+            return topEntry.getKey();
+        } else {
+            return null;
+        }
     }
 
     public static String getTop(int i) {
@@ -106,7 +128,7 @@ public class ReyDeLaColinaGame extends Game {
             Map.Entry<Player, Integer> entry = list.get(i - 1);
             Player player = entry.getKey();
             int points = entry.getValue();
-            return color("&7"+player.getName() + ": &a" + points);
+            return color("&7" + player.getName() + ": &a" + points);
         } else {
             return "...";
         }
@@ -118,8 +140,13 @@ public class ReyDeLaColinaGame extends Game {
         return null;
     }
 
+    @Override
+    public Material menuItem() {
+        return Material.STICK;
+    }
 
-    public void task(){
+
+    public void task() {
         Cuboid cuboid = new Cuboid("314 24 452 306 25 460");
         Location point1 = cuboid.getPoint1();
         Location point2 = cuboid.getPoint2();
@@ -128,18 +155,25 @@ public class ReyDeLaColinaGame extends Game {
             @Override
             public void run() {
                 for (Player t : Bukkit.getOnlinePlayers()) {
-                    if (cuboid.isIn(t)){
-                        addPoints(t,1);
+                    t.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20, 5, false, false, false));
+
+                    if (cuboid.isIn(t)) {
+                        addPoints(t, 1);
                     }
                 }
             }
-        }.runTaskTimer(Core.getInstance(),0,8L);
+        }.runTaskTimer(Core.getInstance(), 0, 8L);
     }
 
-    public void addPoints(Player player, int points){
+    public void addPoints(Player player, int points) {
         Integer i = pointsMap.getOrDefault(player, 0);
         int newPoints = i + points;
 
+        for (Player t : Bukkit.getOnlinePlayers()) {
+            SenderUtil.sendActionbar(t, "&a(+) &e" + player.getName() + " &festa sumando puntos: &a" + newPoints + " puntos");
+        }
+
+        player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 20, 0, false, false, false));
         pointsMap.put(player, newPoints);
     }
 
@@ -160,18 +194,21 @@ public class ReyDeLaColinaGame extends Game {
             }
         } else {
             for (Cuboid cuboid : list) {
-                WorldEditService.fill(cuboid.getPoint1(), cuboid.getPoint2(), Material.RED_STAINED_GLASS);
+                WorldEditService.fill(cuboid.getPoint1(), cuboid.getPoint2(), Material.BARRIER);
             }
         }
     }
 
-    @Override
-    public ItemStack menuItem() {
-        return new ItemBuilder(Material.GOLD_INGOT,"&eRey de la colina").build();
+    @CommandCompletion(" Cantidad-de-Sobrevivientes")
+    @Subcommand("reydelacolina removeplayers")
+    public void removePlayers(int survivorsPerTop) {
+        List<Player> survivors = new ArrayList<>();
+        for (int i = 0; i < survivorsPerTop; i++) {
+            Player topPlayer = getTopPlayer(i);
+            survivors.add(topPlayer);
+        }
+
+        EventUtils.removePlayersIsNotList(survivors, true);
     }
 
-    @Override
-    public int menuSlot() {
-        return slot(6,2);
-    }
 }

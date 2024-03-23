@@ -1,13 +1,11 @@
 package datta.core.games.games;
 
 import co.aikar.commands.annotation.Subcommand;
-import datta.core.Core;
-import datta.core.content.WorldEditService;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
+import datta.core.content.utils.EventPlayer;
 import datta.core.content.utils.EventUtils;
 import datta.core.content.utils.build.consts.Cuboid;
-import datta.core.content.utils.EventPlayer;
 import datta.core.games.Game;
 import datta.core.services.list.SitService;
 import datta.core.utils.SenderUtil;
@@ -22,10 +20,9 @@ import org.bukkit.inventory.PlayerInventory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static datta.core.content.builders.ColorBuilder.stringToLocation;
-import static datta.core.content.builders.MenuBuilder.slot;
+import static datta.core.content.utils.build.BuildUtils.replace;
 
 public class SillitasGame extends Game {
     @Override
@@ -35,17 +32,16 @@ public class SillitasGame extends Game {
 
     @Override
     public Location spawn() {
-        return stringToLocation("552 3 449");
-    }
-
-    @Override
-    public String[] gameinfo() {
-        return new String[]{"sillitas hd 3d rgb", ""};
+        return stringToLocation("1 100 134");
     }
 
     @Override
     public void start() {
         game(() -> {
+            for (Player t : Bukkit.getOnlinePlayers()) {
+                SenderUtil.sendTitle(t, "&e&l¡ATENTO AL PRESENTADOR!", "&8» &f¡Toma atención a &eSpreen&f!&8«");
+                SenderUtil.sendSound(t, Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
+            }
         });
     }
 
@@ -53,31 +49,21 @@ public class SillitasGame extends Game {
     @Override
     public void end() {
         end(() -> {
-            playOrStopMusic(defaultStatus);
+            for (Player t : Bukkit.getOnlinePlayers()) {
+                t.stopAllSounds();
+            }
             removeChairs();
         });
     }
 
     @Override
     public List<String> scoreboard() {
-        return new ArrayList<>(List.of(
-                "",
-                "&7 Cuando suene",
-                "&7 la musica debes",
-                "&7 subirte a una silla",
-                "&7 de lo contrario",
-                "&7 seras eliminado.",
-                ""
-        ));
+        return new ArrayList<>();
     }
 
     @Override
     public List<MenuBuilder.MenuItem> menuItems(Player player) {
         return List.of(
-
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.WHITE_WOOL, "&aCambiar patron").build(), () -> {
-                    shuffle(materials(), 2);
-                }),
 
                 new MenuBuilder.MenuItem(new ItemBuilder(Material.LIGHTNING_ROD, "&eGenerar Silla").build(), this::spawnChair),
 
@@ -94,40 +80,13 @@ public class SillitasGame extends Game {
     }
 
     @Override
-    public ItemStack menuItem() {
-        return new ItemBuilder(Material.OAK_STAIRS, "&bSillitas Musicales")
-                .addLore("", "")
-                .addLore("", "&a• Clic para ver")
-                .build();
+    public Material menuItem() {
+        return Material.OAK_STAIRS;
     }
-
-    @Override
-    public int menuSlot() {
-        return slot(2, 2);
-    }
-
-
-    Location pos1 = stringToLocation("558 3 444");
-    Location pos2 = stringToLocation("546 3 454");
-
 
     public void game() {
         for (int i = 0; i < Bukkit.getOnlinePlayers().size() - 1; i++) {
             spawnChair();
-        }
-    }
-
-    @EventHandler
-    public void interacte(PlayerInteractEvent event) {
-        if (event.hasBlock()){
-            Player player = event.getPlayer();
-            Block clickedBlock = event.getClickedBlock();
-            if (clickedBlock.getType().equals(Material.LIGHTNING_ROD)){
-                if (!defaultStatus){
-                    player.sendMessage("&cLa musica esta sonando!");
-                    event.setCancelled(true);
-                }
-            }
         }
     }
 
@@ -156,13 +115,13 @@ public class SillitasGame extends Game {
     }
 
     @EventHandler
-    public void interact(PlayerInteractEvent event){
+    public void interact(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        if (event.hasItem()){
+        if (event.hasItem()) {
             ItemStack item = event.getItem();
 
             for (MenuBuilder.MenuItem menuItem : menuItems) {
-                if (item.isSimilar(menuItem.getItemStack())){
+                if (item.isSimilar(menuItem.getItemStack())) {
                     menuItem.executeAction(player);
                     event.setCancelled(true);
                     break;
@@ -172,27 +131,38 @@ public class SillitasGame extends Game {
     }
 
     public void removeChairs() {
-        Cuboid cuboid = new Cuboid("546 3 454 558 3 444");
-        WorldEditService.replace(cuboid, Material.LIGHTNING_ROD, Material.AIR);
+        Cuboid cuboid = new Cuboid("7 100 128 -5 100 140");
+        replace(cuboid, Material.LIGHTNING_ROD, Material.AIR);
+
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+            onlinePlayer.leaveVehicle();
     }
 
+
     public void spawnChair() {
-        Cuboid cuboid = new Cuboid("546 3 454 558 3 444");
-        Location location = genLocationInLocations(cuboid.getPoint1(), cuboid.getPoint2());
+        List<String> allowedLocations = List.of("-5 100 140", "-2 100 140", "1 100 140", "4 100 140", "7 100 140", "7 100 137", "4 100 137", "1 100 137", "-2 100 137", "-5 100 137", "-5 100 134", "-2 100 134", "1 100 134", "4 100 134", "4 100 134", "7 100 131", "4 100 131", "1 100 131", "-2 100 131", "-5 100 131", "-5 100 128", "-2 100 128", "1 100 128", "4 100 128", "7 100 128");
+        List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
+        Collections.shuffle(onlinePlayers);
 
-        Block block = location.getBlock();
-        block.setType(Material.LIGHTNING_ROD);
+        for (int i = 0; i < onlinePlayers.size() && i < allowedLocations.size(); i++) {
+            Player player = onlinePlayers.get(i);
+            Location location = stringToLocation(allowedLocations.get(i));
 
-        for (Player t : Bukkit.getOnlinePlayers()) {
-            SenderUtil.sendSound(t, Sound.BLOCK_NOTE_BLOCK_BANJO, 1, 2);
+            Block block = location.getBlock();
+            block.setType(Material.LIGHTNING_ROD);
+
+            for (Player t : Bukkit.getOnlinePlayers()) {
+                SenderUtil.sendSound(t, Sound.BLOCK_NOTE_BLOCK_BANJO, 1, 2);
+            }
         }
     }
 
     public void removePlayers() {
-        SitService sitService = (SitService) Core.getInstance().commandService.serviceFromName("sit");
+
         for (Player p : Bukkit.getOnlinePlayers()) {
             EventPlayer e = new EventPlayer(p);
-            if (e.isStaff()) return;;
+            if (e.isStaff()) return;
+
 
             if (!p.isInsideVehicle()) {
                 EventUtils.eliminate(p, true);
@@ -204,107 +174,26 @@ public class SillitasGame extends Game {
         }
     }
 
-    public static Location genLocationInLocations(Location pos1, Location pos2) {
-        World world = pos1.getWorld();
-
-        int minX = Math.min(pos1.getBlockX(), pos2.getBlockX());
-        int minY = Math.min(pos1.getBlockY(), pos2.getBlockY());
-        int minZ = Math.min(pos1.getBlockZ(), pos2.getBlockZ());
-        int maxX = Math.max(pos1.getBlockX(), pos2.getBlockX());
-        int maxY = Math.max(pos1.getBlockY(), pos2.getBlockY());
-        int maxZ = Math.max(pos1.getBlockZ(), pos2.getBlockZ());
-
-        double randomX = ThreadLocalRandom.current().nextDouble(minX, maxX + 1);
-        double randomY = ThreadLocalRandom.current().nextDouble(minY, maxY + 1);
-        double randomZ = ThreadLocalRandom.current().nextDouble(minZ, maxZ + 1);
-        Location randomLocation = new Location(world, randomX, randomY, randomZ);
-
-        if (isEmptyLocation(randomLocation)) {
-            return randomLocation;
-        } else {
-            return null;
-        }
-    }
-
-    private static boolean isEmptyLocation(Location location) {
-        Block block = location.getBlock();
-        return block.getType() == Material.AIR || block.getType() == Material.LIGHT;
-    }
-
-
-    public void shuffle(List<Material> materials, int pattern) {
-
-        int y = pos1.getBlockY();
-
-        World world = pos1.getWorld();
-
-        int minX = Math.min(pos1.getBlockX(), pos2.getBlockX());
-        int minZ = Math.min(pos1.getBlockZ(), pos2.getBlockZ());
-        int maxX = Math.max(pos1.getBlockX(), pos2.getBlockX());
-        int maxZ = Math.max(pos1.getBlockZ(), pos2.getBlockZ());
-
-        List<Location> locations = new ArrayList<>();
-        for (int x = minX; x <= maxX; x += pattern) {
-            for (int z = minZ; z <= maxZ; z += pattern) {
-                locations.add(new Location(world, x, y, z));
-            }
-        }
-
-        Collections.shuffle(locations);
-
-        for (Location location : locations) {
-            Material material = materials.get((int) (Math.random() * materials.size()));
-            assignMaterial(location, material, pattern);
-        }
-    }
-
-    public List<Material> materials() {
-
-        List<Material> list = List.of(
-                Material.WHITE_WOOL,
-                Material.ORANGE_WOOL,
-                Material.MAGENTA_WOOL,
-                Material.LIGHT_BLUE_WOOL,
-                Material.YELLOW_WOOL,
-                Material.LIME_WOOL,
-                Material.PINK_WOOL,
-                Material.GRAY_WOOL,
-                Material.LIGHT_GRAY_WOOL,
-                Material.CYAN_WOOL,
-                Material.PURPLE_WOOL,
-                Material.BLUE_WOOL,
-                Material.BROWN_WOOL,
-                Material.GREEN_WOOL,
-                Material.RED_WOOL,
-                Material.BLACK_WOOL
-        );
-        return list;
-    }
-
     boolean defaultStatus = false;
+
     public void playOrStopMusic(boolean isPlayingSound) {
         Sound sound = Sound.MUSIC_DISC_WAIT;
 
         if (isPlayingSound) {
-            for (Player player : Bukkit.getOnlinePlayers())
-                player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                player.stopAllSounds();
 
+                player.playSound(player, sound, SoundCategory.MASTER, 1.0f, 1.0f);
+                player.playSound(player, Sound.ENTITY_ITEM_PICKUP, SoundCategory.MASTER, 1.0f, 0.0f);
+            }
         } else {
-            for (Player player : Bukkit.getOnlinePlayers())
+            for (Player player : Bukkit.getOnlinePlayers()) {
                 player.stopSound(sound);
-        }
-
-        defaultStatus = isPlayingSound;
-    }
-
-    private void assignMaterial(Location location, Material material, int pattern) {
-        World world = location.getWorld();
-        for (int x = 0; x < pattern; x++) {
-            for (int z = 0; z < pattern; z++) {
-                world.getBlockAt(location.clone().add(x, 0, z)).setType(material);
+                player.playSound(player, Sound.ENTITY_ITEM_PICKUP, SoundCategory.MASTER, 1.0f, 0.0f);
             }
         }
+
+        SitService.status = !isPlayingSound;
+        defaultStatus = isPlayingSound;
     }
-
-
 }

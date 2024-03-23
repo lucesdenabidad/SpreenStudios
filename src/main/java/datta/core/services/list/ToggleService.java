@@ -25,6 +25,7 @@ import java.util.List;
 
 import static datta.core.Core.menuBuilder;
 import static datta.core.content.builders.MenuBuilder.slot;
+import static datta.core.content.utils.EventUtils.fix;
 
 @CommandPermission("|spreenstudios.*|spreenstudios.toggle")
 @CommandAlias("toggle|alternar|status|stages|stage")
@@ -87,12 +88,9 @@ public class ToggleService extends Service {
                 index++;
             }
 
-            menuBuilder.setItem(player, slot(5, 6), new ItemBuilder(Material.BARRIER, "&cCerrar menú").build(), () -> {
-                player.closeInventory();
-            });
+            menuBuilder.setItem(player, slot(5, 6), new ItemBuilder(Material.BARRIER, "&cCerrar menú").build(), player::closeInventory);
         });
     }
-
 
     public ItemStack itemFromToggleable(Toggleable toggleable) {
 
@@ -110,7 +108,7 @@ public class ToggleService extends Service {
         String texture = status ? TEXTURE_TRUE : TEXTURE_FALSE;
         List<String> lore = status ? LORE_TRUE : LORE_FALSE;
 
-        return new ItemBuilder(Material.PLAYER_HEAD, color + toggleable.name())
+        return new ItemBuilder(Material.PLAYER_HEAD, color + fix(toggleable.name()))
                 .setHeadUrl(texture)
                 .setLore(lore)
                 .build();
@@ -155,35 +153,6 @@ public class ToggleService extends Service {
         if (!category.isStatus()) {
             e.setCancelled(true);
             SenderUtil.sendMessage(p, "%core_prefix% &7No puedes colocar bloques");
-        }
-    }
-
-    @EventHandler
-    public void onDrop(PlayerDropItemEvent e) {
-        Player p = e.getPlayer();
-        EventPlayer eventPlayer = new EventPlayer(p);
-
-        if (eventPlayer.isStaff()) return;
-
-        Toggleable category = Toggleable.DROP;
-        if (!category.isStatus()) {
-            e.setCancelled(true);
-            SenderUtil.sendMessage(p, "%core_prefix% &7No puedes tirar items");
-        }
-    }
-
-    @EventHandler
-    public void onPickup(EntityPickupItemEvent e) {
-        if (e.getEntity() instanceof Player p) {
-
-            EventPlayer eventPlayer = new EventPlayer(p);
-
-            if (eventPlayer.isStaff()) return;
-
-            Toggleable category = Toggleable.PICKUP;
-            if (!category.isStatus()) {
-                e.setCancelled(true);
-            }
         }
     }
 
@@ -246,19 +215,9 @@ public class ToggleService extends Service {
     }
 
     @EventHandler
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
-        if (e.getEntity() instanceof Player p) {
-            Toggleable category = Toggleable.DAMAGE_ENTITIES;
-            if (!category.isStatus()) {
-                e.setCancelled(true);
-            }
-        }
-    }
-
-    @EventHandler
     public void onEntityDamageByFall(EntityDamageEvent e) {
         if (e.getEntity() instanceof Player p) {
-            Toggleable category = Toggleable.DAMAGE_FALL;
+            Toggleable category = Toggleable.FALL_DAMAGE;
             if (!category.isStatus() && e.getCause() == EntityDamageEvent.DamageCause.FALL) {
                 e.setCancelled(true);
             }
@@ -276,25 +235,6 @@ public class ToggleService extends Service {
     }
 
     @EventHandler
-    public void onXPChange(PlayerExpChangeEvent e) {
-        Player p = e.getPlayer();
-        Toggleable category = Toggleable.EXP;
-        if (!category.isStatus()) {
-            e.setAmount(0);
-        }
-    }
-
-    @EventHandler
-    public void onHealthChange(EntityRegainHealthEvent e) {
-        if (e.getEntity() instanceof Player p) {
-            Toggleable category = Toggleable.HEALTH;
-            if (!category.isStatus()) {
-                e.setCancelled(true);
-            }
-        }
-    }
-
-    @EventHandler
     public void onDamage(EntityDamageEvent e) {
         if (e.getEntity() instanceof Player p) {
             Toggleable category = Toggleable.DAMAGE;
@@ -306,7 +246,7 @@ public class ToggleService extends Service {
 
     @EventHandler
     public void onSpawn(PlayerSpawnLocationEvent e) {
-        Toggleable category = Toggleable.SPAWN;
+        Toggleable category = Toggleable.TELEPORT_SPAWN_ON_JOIN;
         if (category.isStatus()) {
             e.setSpawnLocation(e.getPlayer().getWorld().getSpawnLocation());
         }
@@ -315,7 +255,7 @@ public class ToggleService extends Service {
     @EventHandler
     public void onCreatureSpawn(CreatureSpawnEvent e) {
         if (e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CUSTOM) return;
-        Toggleable category = Toggleable.MOBS;
+        Toggleable category = Toggleable.SPAWNING_MOBS;
         if (!category.isStatus()) {
             e.setCancelled(true);
         }
@@ -342,16 +282,10 @@ public class ToggleService extends Service {
         INTERACTIONS,
         BREAK,
         PLACE,
-        DROP,
-        PICKUP,
-        INVENTORY,
         FOOD,
-        HEALTH,
-        EXP,
-        DAMAGE_ENTITIES,
-        DAMAGE_FALL,
-        SPAWN,
-        MOBS,
+        FALL_DAMAGE,
+        TELEPORT_SPAWN_ON_JOIN,
+        SPAWNING_MOBS,
         KICK_ON_DEATH,
         VOID_DAMAGE;
 
@@ -366,10 +300,17 @@ public class ToggleService extends Service {
         }
 
         public void set(boolean value) {
+            set(value, false);
+        }
+
+        public void set(boolean value, boolean silent) {
+            if (!silent) {
+                Core.info("&9(Toggle) &b" + fix(name()) + " &ffue llamada al valor de &b" + fix(String.valueOf(value)) + "&f.");
+            }
+
             this.status = value;
             this.save();
         }
-
         public void save() {
             Core.getInstance().getConfig().set("toggleable." + this.name(), this.status);
             Core.getInstance().getConfig().safeSave();

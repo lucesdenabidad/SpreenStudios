@@ -45,7 +45,6 @@ public class LightService extends Service {
     @Override
     public void onUnload() {
         if (task != null) {
-
             task.cancel();
         }
     }
@@ -55,7 +54,7 @@ public class LightService extends Service {
     public void toggleLights(CommandSender sender) {
         setStatus(!getStatus());
 
-        task.cancel();
+        if (task != null) task.cancel();
         checkTask();
 
         SenderUtil.sendMessage(sender, "%core_prefix% &eAlternaste el estado de las luces de los jugadores a " + getStatus());

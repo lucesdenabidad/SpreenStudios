@@ -16,11 +16,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SitService extends Service {
+
+    public static Boolean status = true;
+
     @Override
     public Core instance() {
         return Core.getInstance();
     }
-
     @Override
     public String name() {
         return "sit";
@@ -52,7 +54,7 @@ public class SitService extends Service {
             if (allowedChairs.contains(clickedBlock.getType())) {
                 if (!player.isInsideVehicle()) {
                     if (!player.isSneaking()) {
-
+                        if (!status) return;
                         if (e.getHand() != EquipmentSlot.HAND) return;
                         if (blockContainsPlayer.contains(clickedBlock)) return;
 

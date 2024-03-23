@@ -35,8 +35,8 @@ public class GameMenu extends BaseCommand {
 
             for (Game game : commandGame.gameList) {
                 String name = game.name();
-                ItemStack itemStack = game.menuItem();
-                Material type = itemStack.getType();
+                Material type = game.menuItem();
+
 
                 ItemStack build = new ItemBuilder(type, "&b" + name)
                         .setLore("",
@@ -45,8 +45,6 @@ public class GameMenu extends BaseCommand {
                                 "&7 entre otras acciones.",
                                 "")
                         .build();
-
-                int i = game.menuSlot();
 
                 menuBuilder.setItem(player, gameSlots[index], build, () -> {
                     subMenu(player, game);

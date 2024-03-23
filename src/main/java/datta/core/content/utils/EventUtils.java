@@ -121,6 +121,12 @@ public class EventUtils {
 
     public static void win(Player p) {
         World world = p.getWorld();
+
+        for (Player t : Bukkit.getOnlinePlayers()) {
+            SenderUtil.sendTitle(t, "&a&l¡GANADOR!", "&8» &f¡&e" + p.getName() + " fue el ultimo en pie&f!&8«");
+            SenderUtil.sendSound(t, Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
+        }
+
         int launchDelay = 10;
         int time = 3;
         int[] timer = {0};

@@ -1,6 +1,7 @@
 package datta.core.menus;
 
 import datta.core.Core;
+import datta.core.commands.InfoCMD;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.consts.MenuConstructor;
 import org.bukkit.Bukkit;
@@ -48,6 +49,7 @@ public class OptionsMenu {
                 World world = player.getWorld();
                 player.teleport(world.getSpawnLocation().toCenterLocation());
             });
+
             menuBuilder.setItem(player, slot(6, 2), new ItemBuilder(Material.ENDER_CHEST, "&eMover a todos al 'SPAWN'")
                     .addLore("",
                             "&7 Haz click para llevar a todos hacia el spawn",
@@ -58,6 +60,25 @@ public class OptionsMenu {
                     onlinePlayer.teleport(world.getSpawnLocation().toCenterLocation());
                 }
             });
+
+            if (Core.disableLog.contains(player)){ // Activar
+                menuBuilder.setItem(player, slot(7, 2), new ItemBuilder(Material.WARPED_SIGN, "&aActivar recibir registros")
+                        .addLore("",
+                                "&7 Haz click para activar los mensajes de operador",
+                                "")
+                        .build(), () -> {
+                    InfoCMD.toggle(player);
+                });
+            } else {
+                menuBuilder.setItem(player, slot(7, 2), new ItemBuilder(Material.CRIMSON_SIGN, "&cDejar de recibir registros")
+                        .addLore("",
+                                "&7 Haz click para activar los mensajes de operador",
+                                "")
+                        .build(), () -> {
+                    InfoCMD.toggle(player);
+                });
+            }
+
 
 
             menuBuilder.setItem(player, slot(5, 5), new ItemBuilder(Material.BARRIER, "&cVolver atras").build(), () -> {

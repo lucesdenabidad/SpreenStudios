@@ -3,30 +3,33 @@ package datta.core.games.games;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.Subcommand;
 import datta.core.Core;
+import datta.core.commands.CallCMD;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
+import datta.core.content.utils.EventPlayer;
 import datta.core.content.utils.EventUtils;
 import datta.core.content.utils.build.BuildUtils;
 import datta.core.content.utils.build.consts.Cuboid;
 import datta.core.games.Game;
 import datta.core.services.list.TimerService;
+import datta.core.services.list.ToggleService;
 import datta.core.utils.SenderUtil;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static datta.core.content.builders.ColorBuilder.stringToLocation;
-import static datta.core.content.builders.MenuBuilder.slot;
-import static datta.core.utils.SenderUtil.sendBroadcast;
+import static datta.core.content.utils.build.BuildUtils.replace;
 
 
 @CommandAlias("games")
@@ -38,28 +41,33 @@ public class ElSueloEsLavaGame extends Game {
 
     @Override
     public Location spawn() {
-        return stringToLocation("401 3 507");
+        return stringToLocation("401 3 549");
     }
 
-    @Override
-    public String[] gameinfo() {
-        return new String[]{
-                "&fCada cierto tiempo la lava sube de manera",
-                "&ffrenetica y sin esperar a ningun participante",
-                "&faumenta sin previo aviso."};
-    }
 
     @Override
     public void start() {
         game(() -> {
-            TimerService.bossBarTimer("&e(!) El cristal se destruye en &e{time} ⌚", BarColor.PURPLE, BarStyle.SOLID, 5, () -> {
-                door(false);
+            CallCMD.callToggleable(ToggleService.Toggleable.PVP, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.FALL_DAMAGE, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.DAMAGE, true);
+            CallCMD.callToggleable(ToggleService.Toggleable.FOOD, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.KICK_ON_DEATH, true);
+            CallCMD.callToggleable(ToggleService.Toggleable.SPAWNING_MOBS, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.PLACE, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.BREAK, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.INTERACTIONS, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.TELEPORT_SPAWN_ON_JOIN, true);
 
-                for (Player t : Bukkit.getOnlinePlayers()) {
-                    SenderUtil.sendSound(t, Sound.BLOCK_NOTE_BLOCK_BASS, 1, 2);
-                }
+            door(false);
+            for (Player t : Bukkit.getOnlinePlayers()) {
+                SenderUtil.sendSound(t, Sound.BLOCK_NOTE_BLOCK_BASS, 1, 2);
+            }
 
-                timerLava(30);
+            TimerService.actionbarTimer(30, () -> {
+                moreLava();
+
+                startLavaTask();
             });
         });
     }
@@ -75,11 +83,7 @@ public class ElSueloEsLavaGame extends Game {
 
     @Override
     public List<String> scoreboard() {
-        return new ArrayList<>(List.of(
-                "",
-                "&fNivel de lava: &e%core_lavastatus%",
-                ""
-        ));
+        return new ArrayList<>();
     }
 
     @Override
@@ -90,24 +94,15 @@ public class ElSueloEsLavaGame extends Game {
 
                 new MenuBuilder.MenuItem(new ItemBuilder(Material.LIME_DYE, "&aAumentar 1 nivel de lava").build(), this::moreLava),
                 new MenuBuilder.MenuItem(new ItemBuilder(Material.ORANGE_DYE, "&6Disminuir 1 nivel de lava").build(), this::lessLava),
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.LAVA_BUCKET, "&e10 segundos para aumentar lava").build(), () -> {
-                    timerLava(10);
-                })
+
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.SLIME_BALL, "&aIniciar 'LavaTask'").build(), this::startLavaTask),
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.REDSTONE, "&cCancelar 'LavaTask'").build(), this::cancelLavaTask)
         );
     }
 
     @Override
-    public ItemStack menuItem() {
-        return new ItemBuilder(Material.LAVA_BUCKET, "&6El suelo es lava")
-                .addLore("", "&bInformación:")
-                .addLore(gameinfo())
-                .addLore("", "&aClic derecho para manejar juego.")
-                .build();
-    }
-
-    @Override
-    public int menuSlot() {
-        return slot(4, 2);
+    public Material menuItem() {
+        return Material.LAVA_BUCKET;
     }
 
     public Location pos1 = stringToLocation("440 3 510");
@@ -115,21 +110,27 @@ public class ElSueloEsLavaGame extends Game {
 
     public static Location updatedLocation = pos2.clone();
     public static int level = updatedLocation.getBlockY();
-
-
     private BukkitTask task;
-    private int later = 10;
+    private final int later = 5;
+    private final int levelPerLater = 3;
 
-    public void lavaTask() {
-        task = Bukkit.getScheduler().runTaskTimer(Core.getInstance(), () -> {
-            TimerService.actionbarTimer(later, this::moreLava);
-        }, 0, 20 * later);
-    }
+    public void startLavaTask() {
+        cancelLavaTask();
 
+        task = new BukkitRunnable() {
+            int time = 0;
+            @Override
+            public void run() {
+                if (time == later) {
+                    for (int i = 0; i < levelPerLater; i++)
+                        moreLava();
 
-    @Subcommand("lava timerlava")
-    public void timerLava(int later) {
-        TimerService.actionbarTimer(later, this::moreLava);
+                    time = 0;
+                }
+
+                time++;
+            }
+        }.runTaskTimer(Core.getInstance(), 0, 20L);
     }
 
     public void cancelLavaTask() {
@@ -138,16 +139,40 @@ public class ElSueloEsLavaGame extends Game {
         }
     }
 
+    @Subcommand("lava task start")
+    public void startLavaTaskCMD() {
+        startLavaTask();
+    }
+
+    @Subcommand("lava task stop")
+    public void stopLavaTaskCMD() {
+        cancelLavaTask();
+    }
+
+
     @Subcommand("lava mapreset")
     public void resetMap() {
-        BuildUtils.replace(stringToLocation("363 48 587"), stringToLocation("440 2 510"), Material.LAVA, Material.AIR);
+        Cuboid cuboid = new Cuboid("440 48 510 363 2 587");
+        replace(cuboid, Material.LAVA, Material.AIR);
+
+        level = pos2.clone().getBlockY();
     }
 
     @Subcommand("lava subir")
     public void moreLava() {
+        if (level == 35){
+            cancelLavaTask();
+            return;
+        }
+
         updatedLocation.setY(level);
-        optimizedReplace(new Cuboid(pos1, updatedLocation), Material.AIR, Material.LAVA);
-        sendBroadcast("&6&lLava &8» &fEl nivel de la lava &caumento&f un bloque.");
+
+        Cuboid cuboid = new Cuboid(pos1, updatedLocation);
+        replace(cuboid, Material.AIR, Material.LAVA);
+
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+            SenderUtil.sendActionbar(onlinePlayer, "&#cf1020La lava a aumentado de nivel...");
+
         level++;
     }
 
@@ -158,12 +183,15 @@ public class ElSueloEsLavaGame extends Game {
         }
 
         level--;
-        sendBroadcast("&6&lLava &8» &fEl nivel de la lava &adisminuyo&f un bloque.");
         updatedLocation.setY(level);
         Location clone = pos1.clone();
         clone.setY(level);
 
-        optimizedReplace(new Cuboid(pos1, updatedLocation), Material.LAVA, Material.AIR);
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+            SenderUtil.sendActionbar(onlinePlayer, "&#cf1020La lava a disminuido de nivel...");
+
+        Cuboid cuboid = new Cuboid(pos1, updatedLocation);
+        replace(cuboid, Material.LAVA, Material.AIR);
     }
 
     @EventHandler
@@ -171,42 +199,23 @@ public class ElSueloEsLavaGame extends Game {
         Player player = event.getPlayer();
         Location location = player.getLocation();
         Block block = location.getBlock();
+        EventPlayer eventPlayer = new EventPlayer(player);
+        if (eventPlayer.isStaff()) return;
+
         if (block.getType() == Material.LAVA) {
             EventUtils.eliminate(player, true);
         }
     }
 
+
+    @Subcommand("lava door")
     public void door(boolean value) {
-        Cuboid cuboid = new Cuboid("397 13 509 406 3 509");
+        Cuboid cuboid = new Cuboid("406 5 553 397 3 544");
 
         if (value) {
-            optimizedReplace(cuboid, Material.AIR, Material.RED_STAINED_GLASS);
+            BuildUtils.walls(cuboid, Material.BARRIER);
         } else {
-            optimizedReplace(cuboid, Material.RED_STAINED_GLASS, Material.AIR);
-        }
-    }
-    public void optimizedReplace(Cuboid cuboid, Material targetMaterial, Material newMaterial) {
-        Location point1 = cuboid.getPoint1();
-        Location point2 = cuboid.getPoint2();
-
-        World world = point1.getWorld();
-
-        int minX = Math.min(point1.getBlockX(), point2.getBlockX());
-        int minY = Math.min(point1.getBlockY(), point2.getBlockY());
-        int minZ = Math.min(point1.getBlockZ(), point2.getBlockZ());
-        int maxX = Math.max(point1.getBlockX(), point2.getBlockX());
-        int maxY = Math.max(point1.getBlockY(), point2.getBlockY());
-        int maxZ = Math.max(point1.getBlockZ(), point2.getBlockZ());
-
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    Block block = world.getBlockAt(x, y, z);
-                    if (block.getType() == targetMaterial && block.getType() != newMaterial) {
-                        block.setType(newMaterial);
-                    }
-                }
-            }
+            BuildUtils.walls(cuboid, Material.AIR);
         }
     }
 }

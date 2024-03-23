@@ -11,8 +11,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.List;
 
-import static datta.core.content.builders.ColorBuilder.color;
-import static datta.core.content.builders.ColorBuilder.colorList;
+import static datta.core.content.builders.ColorBuilder.*;
 
 public class ScoreHolder implements Listener {
 
@@ -64,5 +63,11 @@ public class ScoreHolder implements Listener {
 
         ScoreHelper helper = ScoreHelper.getByPlayer(player);
         helper.setSlotsFromList(colorList(player, lines));
+    }
+
+    public void hideScoreboard() {
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            onlinePlayer.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+        }
     }
 }

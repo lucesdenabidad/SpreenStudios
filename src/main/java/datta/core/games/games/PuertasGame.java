@@ -1,16 +1,15 @@
 package datta.core.games.games;
 
 import co.aikar.commands.annotation.CommandAlias;
-import co.aikar.commands.annotation.Subcommand;
-import datta.core.Core;
-import datta.core.content.WorldEditService;
+import datta.core.commands.CallCMD;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
-import datta.core.content.portals.PlayerEntryPortalEvent;
-import datta.core.content.portals.Portal;
+import datta.core.content.utils.EventPlayer;
+import datta.core.content.utils.EventUtils;
 import datta.core.content.utils.build.consts.Cuboid;
 import datta.core.games.Game;
 import datta.core.services.list.TimerService;
+import datta.core.services.list.ToggleService;
 import datta.core.utils.SenderUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -21,58 +20,19 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static datta.core.Core.info;
 import static datta.core.content.builders.ColorBuilder.stringToLocation;
+import static datta.core.content.utils.build.BuildUtils.replace;
+import static datta.core.content.utils.build.BuildUtils.set;
 
 
 @CommandAlias("games")
 public class PuertasGame extends Game {
-    public static String TEXT = "&f¡Elige un portal!\n&f¡RAPIDO!";
-    private final List<Cuboid> DOORS = Arrays.asList(
-            new Cuboid(stringToLocation("19 109 271"), stringToLocation("19 114 269")),
-            new Cuboid(stringToLocation("19 114 283"), stringToLocation("19 109 285")),
-            new Cuboid(stringToLocation("-17 109 285"), stringToLocation("-17 114 283")),
-            new Cuboid(stringToLocation("-17 114 271"), stringToLocation("-17 109 269"))
-    );
-
-    private final List<Cuboid> GLASSES = Arrays.asList(
-            new Cuboid(stringToLocation("374 24 495"), stringToLocation("370 20 495")),
-            new Cuboid(stringToLocation("399 10 488"), stringToLocation("417 8 488")),
-            new Cuboid(stringToLocation("442 8 494"), stringToLocation("431 6 494")),
-            new Cuboid(stringToLocation("477 7 494"), stringToLocation("482 4 494"))
-    );
-
-    private final List<Cuboid> WIN_SECTORS = Arrays.asList(
-            new Cuboid("406 25 358 411 21 351"),
-            new Cuboid("367 24 362 377 17 351"),
-            new Cuboid("446 31 360 441 28 350"),
-            new Cuboid("482 48 359 476 44 351")
-
-    );
-
-    public static final List<Player> WINNER_LIST = new ArrayList<>();
-    private final Location WAITING_LOCATION = stringToLocation("1 100 295");
-
-    private BukkitTask task;
-    private final Random random = new Random();
-
-    private final Map<Integer, Location> PARKOURS = Map.of(
-            1, stringToLocation("479 4 497 180 1"), // bueno
-            2, stringToLocation("436 6 497 180 1"), // malo
-            3, stringToLocation("408 8 495 180 1"), // bueno
-            4, stringToLocation("372 20 497 180 1") // malo
-    );
-
-    private final Map<Player, Integer> playerParkourStorage = new HashMap<>();
-
-    private final Integer startAt = 10;
-    private final Integer breakAt = 10;
 
     @Override
     public String name() {
@@ -81,229 +41,274 @@ public class PuertasGame extends Game {
 
     @Override
     public Location spawn() {
-        return stringToLocation("1 101 235");
+        return stringToLocation("1 101 291 -180 0");
     }
 
-    @Override
-    public String[] gameinfo() {
-        return new String[]{
-                "&fHay 4 puertas, en dos de ellas te podrás sentir seguro",
-                "&fen las restantes no tendrás la misma suerte..."
-        };
-    }
 
-    @Subcommand("puertas start")
     @Override
     public void start() {
         game(() -> {
-            setPortalStatus(true);
-            TimerService.bossBarTimer("&d(!) &f¡Tienes &e{time}&f para elegir un portal!", BarColor.PURPLE, BarStyle.SOLID, startAt, () -> {
+            CallCMD.callToggleable(ToggleService.Toggleable.PVP, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.FALL_DAMAGE, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.FOOD, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.PLACE, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.BREAK, false);
+            CallCMD.callToggleable(ToggleService.Toggleable.SPAWNING_MOBS, false);
 
-                for (Player t : Bukkit.getOnlinePlayers()) {
-                    joinPlayerToRandomParkour(t);
-                    teleportPlayerToParkour(t);
-                }
+            CallCMD.callToggleable(ToggleService.Toggleable.DAMAGE, true);
+            CallCMD.callToggleable(ToggleService.Toggleable.KICK_ON_DEATH, true);
+            CallCMD.callToggleable(ToggleService.Toggleable.INTERACTIONS, true);
+            CallCMD.callToggleable(ToggleService.Toggleable.TELEPORT_SPAWN_ON_JOIN, true);
 
-                TimerService.actionbarTimer(breakAt, this::breakAllGlass);
+            openStairs();
+
+            TimerService.actionbarTimer(tiempoParaElegirPortal, () -> {
+                closeStairs();
             });
         });
     }
 
-    @Subcommand("puertas end")
+
     @Override
     public void end() {
         end(() -> {
-            setPortalStatus(false);
-
-            if (task != null)
-                task.cancel();
-
-            buildAllGlass();
+            setDoors(Material.BARRIER);
+            closeStairs();
+            setParkourGlass(Material.RED_STAINED_GLASS);
         });
     }
 
     @Override
     public List<String> scoreboard() {
-        return new ArrayList<>(List.of(
-                "",
-                "&7 ¡Elige un portal y",
-                "&7 completa el desafio!",
-                "",
-                "&f Pasantes: &b%core_pasantes%",
-                ""));
+        return new ArrayList<>();
     }
-
 
     @Override
     public List<MenuBuilder.MenuItem> menuItems(Player player) {
-        return Arrays.asList(
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.LIME_DYE, "&aAbrir puertas").build(), () -> setPortalStatus(true)),
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.RED_DYE, "&cCerrar puertas").build(), () -> setPortalStatus(false))
-        );
+        return new ArrayList<>(List.of(
+
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.PAPER, "&aAbrir portal cercano").build(), () -> {
+                    setNearestCuboid(player, Material.AIR);
+                }),
+
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.PAPER, "&cCerrar portal cercano").build(), () -> {
+                    setNearestCuboid(player, Material.BARRIER);
+                }),
+
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.PAPER, "&aAbrir cristales de parkour").build(), () -> {
+                    setParkourGlass(Material.AIR);
+                }),
+
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.PAPER, "&cCerrar cristales de parkour").build(), () -> {
+                    setParkourGlass(Material.RED_STAINED_GLASS_PANE);
+                }),
+
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.PAPER, "&aIniciar parkour").build(), this::startParkour),
+
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.PAPER, "&cTerminar parkour").build(), this::stopParkour)
+        ));
     }
 
     @Override
-    public ItemStack menuItem() {
-        return new ItemBuilder(Material.OAK_DOOR, "&6Puertas")
-                .addLore("")
-                .addLore(gameinfo())
-                .addLore("", "&aClic para ver.")
-                .build();
+    public Material menuItem() {
+        return Material.IRON_DOOR;
     }
 
-    @Override
-    public int menuSlot() {
-        return MenuBuilder.slot(3, 2);
+    // # Constantes
+    private static final Cuboid PARKOUR_1 = new Cuboid("11 109 266 20 116 275");
+    private static final Cuboid PARKOUR_2 = new Cuboid("20 116 287 11 109 281");
+    private static final Cuboid PARKOUR_3 = new Cuboid("-9 109 274 -18 115 266");
+    private static final Cuboid PARKOUR_4 = new Cuboid("-18 109 280 -10 115 287");
+    private final Map<Player, String> saved = new HashMap<>();
+    private final Cuboid[] parkours = {PARKOUR_1, PARKOUR_2, PARKOUR_3, PARKOUR_4};
+    private final String[] parkourNames = {"parkour-1", "parkour-2", "parkour-3", "parkour-4"};
+
+    int tiempoParaElegirPortal = 120; // 2 minutos
+    int tiempoParaIniciarParkour = 5;
+    int tiempoDeParkour = 300;
+
+    boolean freeze = false;
+
+    // # Metodos
+
+    public void openStairs() {
+        Cuboid izq = new Cuboid("-15 108 288 -10 108 267");
+        Cuboid der = new Cuboid("19 108 265 11 108 290");
+
+        replace(izq, Material.BARRIER, Material.AIR);
+        replace(der, Material.BARRIER, Material.AIR);
+
+        for (Player t : Bukkit.getOnlinePlayers())
+            SenderUtil.sendActionbar(t, "&a¡Ya puedes elegir un portal!", Sound.ENTITY_ITEM_PICKUP);
     }
 
-    public void setPortalStatus(boolean open) {
-        Material material = open ? Material.AIR : Material.BARRIER;
-        for (Cuboid door : DOORS) {
-            WorldEditService.fill(door.getPoint2(), door.getPoint1(), material);
-        }
-        info("Las puertas de 'doors' cambiaron a " + (open ? "abiertas" : "cerradas") + ".");
+    public void closeStairs() {
+        Cuboid izq = new Cuboid("-15 108 288 -10 108 267");
+        Cuboid der = new Cuboid("19 108 265 11 108 290");
+
+        replace(izq, Material.AIR, Material.BARRIER);
+        replace(der, Material.AIR, Material.BARRIER);
+
+        for (Player t : Bukkit.getOnlinePlayers())
+            SenderUtil.sendActionbar(t, "&c¡Ya no puedes elegir un portal!", Sound.ENTITY_ITEM_PICKUP);
     }
 
+    private void enter(Player player, String parkourName) {
+        parkourName = parkourName.replace("parkour-", "");
 
-    public void teleportPlayerToParkour(Player player) {
-        if (!playerParkourStorage.containsKey(player)) {
-
+        if (saved.get(player) != null && saved.get(player).equalsIgnoreCase(parkourName)) {
             return;
         }
 
-        Integer playerParkour = getPlayerParkour(player);
-        Location location = PARKOURS.get(playerParkour).toCenterLocation();
-
-        player.teleport(location);
-        SenderUtil.sendSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5F, 2);
-        SenderUtil.sendActionbar(player, "&a[✔] Teletransportación completada!");
-        SenderUtil.sendMessage(player, "%core_prefix% &eFuiste teletransportado a tu parkour.");
+        saved.put(player, parkourName);
+        SenderUtil.sendActionbar(player, "&a(!) Has elegido un portal con éxito.", Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
     }
 
-    public void joinPlayerToRandomParkour(Player player) {
-        if (playerParkourStorage.containsKey(player)) {
-            return;
+    private void setDoors(Material material) {
+        Cuboid portal1 = new Cuboid("19 114 269 19 109 271");
+        Cuboid portal2 = new Cuboid("19 114 283 19 109 285");
+        Cuboid portal3 = new Cuboid("-17 114 285 -17 109 283");
+        Cuboid portal4 = new Cuboid("-17 114 271 -17 109 269");
+
+        set(portal1, material);
+        set(portal2, material);
+        set(portal3, material);
+        set(portal4, material);
+    }
+
+
+    public Cuboid nearestCuboid(Location location) {
+        Cuboid[] portals = {
+                new Cuboid("19 114 269 19 109 271"),
+                new Cuboid("19 114 283 19 109 285"),
+                new Cuboid("-17 114 285 -17 109 283"),
+                new Cuboid("-17 114 271 -17 109 269")
+        };
+
+        Location centerLocation = location.toCenterLocation();
+        Cuboid nearestCuboid = null;
+        double minDistance = Double.MAX_VALUE;
+        double maxDistance = 10;
+
+        for (Cuboid portal : portals) {
+            Location portalCenter = portal.getCenter();
+            double distance = centerLocation.distance(portalCenter);
+            if (distance <= maxDistance && distance < minDistance) {
+                minDistance = distance;
+                nearestCuboid = portal;
+            }
         }
 
-
-        int i = random.nextInt(4);
-        joinPlayerToParkour(player, i);
-    }
-
-    public void joinPlayerToParkour(Player player, Integer id) {
-        playerParkourStorage.put(player, id);
-        player.teleport(WAITING_LOCATION);
-
-        SenderUtil.sendMessage(player, "%core_prefix% &aEntraste a un parkour correctamente.");
-        sendBar("&a[✔] " + player.getName() + "&f entro a un portal");
+        return nearestCuboid;
     }
 
 
-    public void quitPlayerFromParkour(Player player) {
-        playerParkourStorage.remove(player);
-    }
+    public void setNearestCuboid(Player player, Material material) {
+        Location location = player.getLocation();
+        Cuboid cuboid = nearestCuboid(location);
 
-    public Integer getPlayerParkour(Player player) {
-        return playerParkourStorage.getOrDefault(player, 1);
-    }
+        set(cuboid, material);
 
-    public void sendBar(String message) {
-        for (Player t : Bukkit.getOnlinePlayers()) {
-            SenderUtil.sendActionbar(t, message);
-            SenderUtil.sendSound(t, Sound.ENTITY_ITEM_PICKUP, 0.4F, 2);
-        }
-    }
-
-    public boolean isInParkour(Player player) {
-        return playerParkourStorage.containsKey(player);
-    }
-
-    @Subcommand("puertas break")
-    public void breakAllGlass() {
-        for (Cuboid glass : GLASSES) {
-            breakGlass(glass);
-        }
-    }
-
-    @Subcommand("puertas build")
-    public void buildAllGlass() {
-        for (Cuboid glass : GLASSES) {
-            buildGlass(glass);
+        if (material == Material.AIR) {
+            SenderUtil.sendMessage(player, "%core_prefix% &aHas abierto el portal mas cercano a ti.");
+        } else {
+            SenderUtil.sendMessage(player, "%core_prefix% &cHas cerrado el portal mas cercano a ti.");
         }
     }
 
-    public void buildGlass(Cuboid cuboid) {
-        Location point1 = cuboid.getPoint1();
-        Location point2 = cuboid.getPoint2();
+    public void setParkourGlass(Material material) {
+        Cuboid[] cuboids = {
+                new Cuboid("370 20 495 374 24 495"),
+                new Cuboid("417 10 488 400 8 488"),
+                new Cuboid("442 8 494 431 6 494"),
+                new Cuboid("477 7 494 482 4 494")
+        };
 
-        WorldEditService.fill(point1, point2, Material.RED_STAINED_GLASS);
+        for (Cuboid cuboid : cuboids) {
+            set(cuboid, material);
+        }
     }
 
-    public void breakGlass(Cuboid cuboid) {
-        Location point1 = cuboid.getPoint1();
-        Location point2 = cuboid.getPoint2();
+    public void startParkour() {
+        TimerService.actionbarTimer(tiempoParaIniciarParkour, () -> {
+            setParkourGlass(Material.AIR);
+            for (Player t : Bukkit.getOnlinePlayers()) {
+                SenderUtil.sendActionbar(t, "&a(!) Tienes 2 minutos parra llegar ala meta!", Sound.ENTITY_ITEM_PICKUP);
+            }
 
-        BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-        String[] materials = {"RED_STAINED_GLASS", "ORANGE_STAINED_GLASS", "YELLOW_STAINED_GLASS", "GREEN_STAINED_GLASS", "LIME_STAINED_GLASS", "AIR"};
+            TimerService.bossBarTimer("{time}", BarColor.PURPLE, BarStyle.SOLID, tiempoDeParkour, () -> {
+                freeze = true;
 
-        for (int i = 0; i < materials.length; i++) {
-            int ticks = i * 15;
-            final Material material = Material.valueOf(materials[i]);
-            scheduler.runTaskLater(Core.getInstance(), () -> {
-
-                WorldEditService.fill(point1, point2, material);
-                Location center = cuboid.getCenter();
-                center.getWorld().playSound(center, Sound.BLOCK_GLASS_BREAK, 1F, 1F);
-                if (material.toString().contains("AIR")) {
-                    center.getWorld().playSound(center, Sound.ENTITY_WITHER_DEATH, 1F, 1F);
-                    for (Player t : Bukkit.getOnlinePlayers()) {
-                        SenderUtil.sendTitle(t, "&e&l¡CRISTALES ROTOS!", "&8» &a¡BUENA SUERTE! &8«");
-                    }
+                for (Player t : Bukkit.getOnlinePlayers()) {
+                    SenderUtil.sendActionbar(t, "&c¡RING RING!", Sound.ITEM_LODESTONE_COMPASS_LOCK);
                 }
+            });
+        });
+    }
 
-            }, ticks);
+    public void stopParkour() {
+        freeze = false;
+
+        Cuboid cuboid = new Cuboid("500 65 499 355 -1 350");
+
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            EventPlayer eventPlayer = new EventPlayer(onlinePlayer);
+
+            if (eventPlayer.isStaff()) return;
+
+            if (cuboid.isIn(onlinePlayer)) {
+                dead(onlinePlayer);
+            }
         }
     }
 
-    public void playerWin(Player player) {
-        boolean contains = WINNER_LIST.contains(player);
-        if (contains) {
-            return;
-        }
 
-        WINNER_LIST.add(player);
-
-        sendBar("&a[✔] " + player.getName() + "&f completo el &eparkour&f con éxito.");
-        quitPlayerFromParkour(player);
+    public void dead(Player player) {
+        EventUtils.eliminate(player,true);
     }
 
+    public void win(Player player) {
+        player.teleport(stringToLocation("1 100 134"));
 
-    public Cuboid cuboid = new Cuboid("355 -1 500 500 2 350");
+        for (Player t : Bukkit.getOnlinePlayers()) {
+            SenderUtil.sendActionbar(t, "&a(✔) " + player.getName() + " llego ala meta!", Sound.BLOCK_NOTE_BLOCK_BANJO);
+        }
+    }
+
+    // # Eventos
 
     @EventHandler
     public void move(PlayerMoveEvent event) {
         Player player = event.getPlayer();
 
-        if (cuboid.isIn(player)) {
-            teleportPlayerToParkour(player);
-        }
-
-        for (Cuboid winSector : WIN_SECTORS) {
-            if (winSector.isIn(player)) {
-                playerWin(player);
+        for (int i = 0; i < parkours.length; i++) {
+            if (parkours[i].isIn(player)) {
+                enter(player, parkourNames[i]);
                 break;
             }
         }
     }
 
-    @EventHandler
-    public void moveInPortals(PlayerEntryPortalEvent event) {
-        Player player = event.getPlayer();
-        Portal portal = event.getPortal();
-        String id = portal.getId();
-        id = id.replace("parkour-", "");
 
-        Integer i = Integer.valueOf(id);
-        joinPlayerToParkour(player, i);
+    @EventHandler
+    public void moveOnWinParkour(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        Cuboid cuboid = new Cuboid("500 65 350 355 -1 368");
+
+        if (cuboid.isIn(player)) {
+            win(player);
+        }
+    }
+
+    @EventHandler
+    public void moveInFreeze(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        EventPlayer eventPlayer = new EventPlayer(player);
+
+        if (freeze) {
+            if (eventPlayer.isStaff()) return;
+            SenderUtil.sendActionbar(player, "&c¡Estas congelado!", Sound.BLOCK_ANVIL_BREAK);
+            event.setCancelled(true);
+        }
     }
 }

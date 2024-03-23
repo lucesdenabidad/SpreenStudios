@@ -26,7 +26,7 @@ public class InfoCMD extends BaseCommand {
 
 
     @Subcommand("toggle")
-    public void toggle(Player player) {
+    public static void toggle(Player player) {
         if (Core.disableLog.contains(player)) {
             Core.disableLog.remove(player);
         } else {
@@ -39,7 +39,7 @@ public class InfoCMD extends BaseCommand {
     }
 
     @Subcommand("toggle")
-    public void toggle(OnlinePlayer onlinePlayer) {
+    public static void toggle(CommandSender sender, OnlinePlayer onlinePlayer) {
         Player player = onlinePlayer.getPlayer();
 
         if (Core.disableLog.contains(player)) {
@@ -49,6 +49,8 @@ public class InfoCMD extends BaseCommand {
         }
 
         String actual = formatBoolean(!Core.disableLog.contains(player), "Activado", "Deshabilitado");
-        SenderUtil.sendMessage(player, "%core_prefix% &eSe ha alternado el buzón de información de administración para " + player.getName() + ". Ahora está " + actual + ".");
+
+        SenderUtil.sendMessage(player, "%core_prefix% &e"+sender.getName()+" te ha alternado el registro de operador, Ahora el estado está en " + actual + ".");
+        SenderUtil.sendMessage(sender, "%core_prefix% &eSe ha alternado el buzón de información de administración para " + player.getName() + ". Ahora está " + actual + ".");
     }
 }

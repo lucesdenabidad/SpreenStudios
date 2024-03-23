@@ -23,6 +23,7 @@ import datta.core.games.GamesCommand;
 import datta.core.games.games.*;
 import datta.core.menus.GameMenu;
 import datta.core.services.CommandService;
+import datta.core.commands.CallCMD;
 import datta.core.services.list.ToggleService;
 import datta.core.utils.SenderUtil;
 import lombok.Getter;
@@ -53,13 +54,7 @@ public class Core extends JavaPlugin {
     public PortalManager portalManager;
 
     public String defaultTitle = "&5&lEventos";
-    public List<String> defaultLines = List.of(
-            "",
-            "&f  Estado: &bEsperando...",
-            "",
-            "&7 twitch.tv/elspreen"
-
-    );
+    public List<String> defaultLines = new ArrayList<>();
 
 
     @Override
@@ -95,6 +90,7 @@ public class Core extends JavaPlugin {
         commandManager.registerCommand(new GamesCommand());
         commandManager.registerCommand(new ColorCMD());
         commandManager.registerCommand(new TpallCMD());
+        commandManager.registerCommand(new CallCMD());
 
         Stick.registerStick(new PunchStick());
         Stick.registerStick(new KickStick());
@@ -118,18 +114,21 @@ public class Core extends JavaPlugin {
 
     @Override
     public void onDisable() {
-
         commandService.unloadServices();
         stopGames();
         coreParse.unregister();
+
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            onlinePlayer.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+        }
     }
 
     public static void info(String... s) {
         for (String e : s) {
             SenderUtil.sendMessage(Bukkit.getServer().getConsoleSender(), "&7[SpreenStudios] [Log] &r"+e);
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-                if (onlinePlayer.isOp() && !disableLog.contains(onlinePlayer)) {
-                    SenderUtil.sendMessage(onlinePlayer, "&7[OP-LOG] &r"+e);
+                if (onlinePlayer.isOp() && disableLog.contains(onlinePlayer)) {
+                    SenderUtil.sendMessage(onlinePlayer, "&8[Log] &r"+e);
                 }
             }
         }

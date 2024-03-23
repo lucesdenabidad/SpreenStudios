@@ -51,6 +51,7 @@ public class TimerService extends Service {
     @Override
     public void onUnload() {
         removeBossBar();
+        removeActionbar();
     }
 
 
@@ -120,7 +121,7 @@ public class TimerService extends Service {
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             bossBar.addPlayer(onlinePlayer);
-            SenderUtil.sendSound(onlinePlayer, Sound.BLOCK_NOTE_BLOCK_PLING,1,2);
+            SenderUtil.sendSound(onlinePlayer, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 2);
         }
 
         bossbarTask = new BukkitRunnable() {
@@ -149,20 +150,21 @@ public class TimerService extends Service {
     }
 
     public static void removeBossBar() {
-        if (bossBar != null) {
-            bossBar.setVisible(false);
-            bossBar.removeAll();
-            bossBar = null;
+        if (bossbarTask != null) {
             bossbarTask.cancel();
-            Core.info("El temporizador activo tipo BOSSBAR se elimino con éxito.");
+        }
 
+        if (bossBar != null) {
+            bossBar.removeAll();
+            bossBar.setVisible(false);
         }
     }
 
     public static void removeActionbar() {
-        actionbartask.cancel();
+        if (actionbartask != null) {
+            actionbartask.cancel();
+        }
+
         Core.info("El temporizador activo tipo ACTIONBAR se elimino con éxito.");
-
-
     }
 }

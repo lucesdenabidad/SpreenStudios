@@ -1,32 +1,26 @@
 package datta.core.content.utils.build;
 
-import org.bukkit.Location;
+import datta.core.content.utils.build.consts.Cuboid;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
+
+import java.util.List;
 
 public class BuildUtils {
 
-    public static void replace(Location pos1, Location pos2, Material replaceMaterial, Material newMaterial) {
-        World world = pos1.getWorld();
+    public static void set(Cuboid cuboid, Material material){
+        cuboid.blockList().forEach(block -> block.setType(material));
+    }
 
-        int minX = Math.min(pos1.getBlockX(), pos2.getBlockX());
-        int minY = Math.min(pos1.getBlockY(), pos2.getBlockY());
-        int minZ = Math.min(pos1.getBlockZ(), pos2.getBlockZ());
-        int maxX = Math.max(pos1.getBlockX(), pos2.getBlockX());
-        int maxY = Math.max(pos1.getBlockY(), pos2.getBlockY());
-        int maxZ = Math.max(pos1.getBlockZ(), pos2.getBlockZ());
+    public static void walls(Cuboid cuboid, Material material) {
+        List<Block> wallBlocks = cuboid.getWallBlocks();
+        wallBlocks.forEach(block -> block.setType(material));
+    }
 
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    Location currentLocation = new Location(world, x, y, z);
-                    Block block = currentLocation.getBlock();
-
-                    if (block.getType() == replaceMaterial) {
-                        block.setType(newMaterial);
-                    }
-                }
+    public static void replace(Cuboid cuboid, Material replaceMaterial, Material newMaterial) {
+        for (Block block : cuboid.blockList()) {
+            if (block.getType() == replaceMaterial) {
+                block.setType(newMaterial);
             }
         }
     }

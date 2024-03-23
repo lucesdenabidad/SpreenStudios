@@ -19,11 +19,16 @@ public class SenderUtil {
         sender.sendActionBar(color(sender, message));
     }
 
+    public static void sendActionbar(Player sender, String message, Sound sound) {
+        sendActionbar(sender.getPlayer(), message);
+        sendSound(sender, sound, 1, 1);
+    }
+
     public static void sendTitle(Player sender, String title, String subtitle) {
         sender.sendTitle(color(title), color(subtitle));
     }
 
-        public static void sendTitle(Player sender, String title, String subtitle, int fade, int duration) {
+    public static void sendTitle(Player sender, String title, String subtitle, int fade, int duration) {
         sender.sendTitle(color(title), color(subtitle), fade, duration, fade);
     }
 
@@ -32,9 +37,9 @@ public class SenderUtil {
     }
 
 
-        public static void sendBroadcast(String ... message) {
-            for (String s : message) {
-                Bukkit.broadcastMessage(color(s));
-            }
+    public static void sendBroadcast(String... message) {
+        for (String s : message) {
+            Bukkit.broadcastMessage(color(s));
+        }
     }
 }
