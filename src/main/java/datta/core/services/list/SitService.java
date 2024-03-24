@@ -54,13 +54,17 @@ public class SitService extends Service {
             if (allowedChairs.contains(clickedBlock.getType())) {
                 if (!player.isInsideVehicle()) {
                     if (!player.isSneaking()) {
+
                         if (!status) return;
                         if (e.getHand() != EquipmentSlot.HAND) return;
                         if (blockContainsPlayer.contains(clickedBlock)) return;
 
                         if (e.getAction().isRightClick()) {
                             sit(player, clickedBlock);
+
                         }
+
+                        e.setCancelled(true);
                     }
                 }
             }

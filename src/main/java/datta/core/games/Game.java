@@ -4,7 +4,6 @@ import co.aikar.commands.BaseCommand;
 import datta.core.Core;
 import datta.core.content.CoreTask;
 import datta.core.content.builders.MenuBuilder;
-import datta.core.content.utils.EventPlayer;
 import datta.core.services.list.ScoreboardService;
 import datta.core.services.list.ScreenColorService;
 import datta.core.services.list.TimerService;
@@ -22,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static datta.core.content.utils.EventUtils.heal;
+import static datta.core.content.utils.EventUtils.isStaff;
 
 public abstract class Game extends BaseCommand implements Listener {
 
@@ -57,14 +57,15 @@ public abstract class Game extends BaseCommand implements Listener {
     }
     public void teleportSpawn() {
         ScreenColorService service = (ScreenColorService) Core.getInstance().commandService.serviceFromName("screencolor");
-        int fade = 50;
+        int fade = 25;
 
         service.showAll(ChatColor.BLACK, fade, fade);
+
         CoreTask.runTask(() -> {
             for (Player t : Bukkit.getOnlinePlayers()) {
                 t.teleport(spawn().toCenterLocation());
             }
-        }, 20L * 2);
+        }, 45L);
     }
 
     public void teleportSpawn(Runnable runnable) {
@@ -84,17 +85,14 @@ public abstract class Game extends BaseCommand implements Listener {
     public void game(Runnable run) {
 
         for (Player t : Bukkit.getOnlinePlayers()) {
-            EventPlayer e = new EventPlayer(t);
             heal(t);
 
-            if (!e.isStaff()) {
+            if (!isStaff(t)) {
                 t.getInventory().clear();
             }
 
             for (PotionEffect activePotionEffect : t.getActivePotionEffects()) {
-                if (activePotionEffect.getType() != PotionEffectType.NIGHT_VISION) {
-                    t.removePotionEffect(activePotionEffect.getType());
-                }
+                t.removePotionEffect(activePotionEffect.getType());
             }
         }
 
@@ -122,9 +120,7 @@ public abstract class Game extends BaseCommand implements Listener {
         service.changeScore(Core.getInstance().defaultTitle, Core.getInstance().defaultLines);
 
         for (Player t : Bukkit.getOnlinePlayers()) {
-            EventPlayer e = new EventPlayer(t);
-
-            if (!e.isStaff()) {
+            if (!isStaff(t)) {
                 t.getInventory().clear();
             }
 

@@ -1,16 +1,19 @@
 package datta.core.games.games;
 
+import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
-import datta.core.content.utils.EventPlayer;
 import datta.core.content.utils.EventUtils;
 import datta.core.content.utils.build.consts.Cuboid;
 import datta.core.games.Game;
 import datta.core.services.list.SitService;
-import datta.core.utils.SenderUtil;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -18,12 +21,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static datta.core.content.builders.ColorBuilder.stringToLocation;
 import static datta.core.content.utils.build.BuildUtils.replace;
 
+@CommandPermission("spreenstudios.games")
+@CommandAlias("games")
 public class SillitasGame extends Game {
     @Override
     public String name() {
@@ -32,16 +36,12 @@ public class SillitasGame extends Game {
 
     @Override
     public Location spawn() {
-        return stringToLocation("1 100 134");
+        return stringToLocation("654 3 431 0 0");
     }
 
     @Override
     public void start() {
         game(() -> {
-            for (Player t : Bukkit.getOnlinePlayers()) {
-                SenderUtil.sendTitle(t, "&e&l¡ATENTO AL PRESENTADOR!", "&8» &f¡Toma atención a &eSpreen&f!&8«");
-                SenderUtil.sendSound(t, Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
-            }
         });
     }
 
@@ -65,7 +65,7 @@ public class SillitasGame extends Game {
     public List<MenuBuilder.MenuItem> menuItems(Player player) {
         return List.of(
 
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.LIGHTNING_ROD, "&eGenerar Silla").build(), this::spawnChair),
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.LIGHTNING_ROD, "&eGenerar Silla").build(), this::spawnChairs),
 
                 new MenuBuilder.MenuItem(new ItemBuilder(Material.LIME_DYE, "&aIniciar Ronda").build(), this::game),
                 new MenuBuilder.MenuItem(new ItemBuilder(Material.RED_DYE, "&cEliminar jugadores").build(), this::removePlayers),
@@ -85,9 +85,7 @@ public class SillitasGame extends Game {
     }
 
     public void game() {
-        for (int i = 0; i < Bukkit.getOnlinePlayers().size() - 1; i++) {
-            spawnChair();
-        }
+        spawnChairs();
     }
 
     List<MenuBuilder.MenuItem> menuItems = new ArrayList<>(List.of(
@@ -131,7 +129,7 @@ public class SillitasGame extends Game {
     }
 
     public void removeChairs() {
-        Cuboid cuboid = new Cuboid("7 100 128 -5 100 140");
+        Cuboid cuboid = new Cuboid("659 5 454 650 4 445");
         replace(cuboid, Material.LIGHTNING_ROD, Material.AIR);
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers())
@@ -139,37 +137,28 @@ public class SillitasGame extends Game {
     }
 
 
-    public void spawnChair() {
-        List<String> allowedLocations = List.of("-5 100 140", "-2 100 140", "1 100 140", "4 100 140", "7 100 140", "7 100 137", "4 100 137", "1 100 137", "-2 100 137", "-5 100 137", "-5 100 134", "-2 100 134", "1 100 134", "4 100 134", "4 100 134", "7 100 131", "4 100 131", "1 100 131", "-2 100 131", "-5 100 131", "-5 100 128", "-2 100 128", "1 100 128", "4 100 128", "7 100 128");
-        List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
-        Collections.shuffle(onlinePlayers);
+    public void spawnChairs() {
+        List<String> allowedLocations = List.of("652 5 451", "654 5 452", "656 5 451", "657 5 449", "656 5 447", "654 5 446", "652 5 447", "651 5 449");
 
-        for (int i = 0; i < onlinePlayers.size() && i < allowedLocations.size(); i++) {
-            Player player = onlinePlayers.get(i);
-            Location location = stringToLocation(allowedLocations.get(i));
+        for (String allowedLocation : allowedLocations) {
+            Location location = stringToLocation(allowedLocation);
 
             Block block = location.getBlock();
             block.setType(Material.LIGHTNING_ROD);
-
-            for (Player t : Bukkit.getOnlinePlayers()) {
-                SenderUtil.sendSound(t, Sound.BLOCK_NOTE_BLOCK_BANJO, 1, 2);
-            }
         }
     }
+
 
     public void removePlayers() {
 
         for (Player p : Bukkit.getOnlinePlayers()) {
-            EventPlayer e = new EventPlayer(p);
-            if (e.isStaff()) return;
+            if (!p.isOp()) {
 
-
-            if (!p.isInsideVehicle()) {
-                EventUtils.eliminate(p, true);
-            } else {
-                Block block = p.getLocation().getBlock();
-                block.setType(Material.AIR);
-                p.leaveVehicle();
+                if (!p.isInsideVehicle()) {
+                    EventUtils.eliminate(p, true);
+                } else {
+                    p.leaveVehicle();
+                }
             }
         }
     }
@@ -196,4 +185,22 @@ public class SillitasGame extends Game {
         SitService.status = !isPlayingSound;
         defaultStatus = isPlayingSound;
     }
+
+    public void changeBlockDirection(Block block, BlockFace newFace) {
+        // Verificar si el bloque es una GRINDSTONE
+        if (block.getType() == Material.GRINDSTONE) {
+            // Obtener el estado del bloque
+            BlockData blockData = block.getBlockData();
+            if (blockData instanceof Directional) {
+                // Cambiar la orientación del bloque
+                Directional directional = (Directional) blockData;
+                directional.setFacing(newFace);
+                // Guardar el nuevo estado del bloque
+                block.setBlockData(directional);
+            } else {
+            }
+        } else {
+        }
+    }
+
 }

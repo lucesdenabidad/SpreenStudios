@@ -7,7 +7,6 @@ import datta.core.content.configuration.Configuration;
 import datta.core.services.Service;
 import datta.core.utils.SenderUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -74,9 +73,7 @@ public class LightService extends Service {
         }
 
         for (Player t : Bukkit.getOnlinePlayers()) {
-            SenderUtil.sendSound(t, Sound.BLOCK_LEVER_CLICK, 1, 2);
-            SenderUtil.sendSound(t, Sound.BLOCK_LEVER_CLICK, 1, 1);
-            SenderUtil.sendSound(t, Sound.BLOCK_LEVER_CLICK, 1, 0);
+            SenderUtil.sendSound(t, "qsm:light", 1, 1);
         }
 
     }

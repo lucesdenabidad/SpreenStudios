@@ -26,6 +26,7 @@ import java.util.List;
 import static datta.core.Core.menuBuilder;
 import static datta.core.content.builders.MenuBuilder.slot;
 import static datta.core.content.utils.EventUtils.fix;
+import static datta.core.content.utils.EventUtils.isStaff;
 
 @CommandPermission("|spreenstudios.*|spreenstudios.toggle")
 @CommandAlias("toggle|alternar|status|stages|stage")
@@ -131,9 +132,8 @@ public class ToggleService extends Service {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
         Player p = e.getPlayer();
-        EventPlayer eventPlayer = new EventPlayer(p);
 
-        if (eventPlayer.isStaff()) return;
+        if (isStaff(p)) return;
 
         Toggleable category = Toggleable.BREAK;
         if (!category.isStatus()) {
@@ -145,9 +145,8 @@ public class ToggleService extends Service {
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent e) {
         Player p = e.getPlayer();
-        EventPlayer eventPlayer = new EventPlayer(p);
 
-        if (eventPlayer.isStaff()) return;
+        if (isStaff(p)) return;
 
         Toggleable category = Toggleable.PLACE;
         if (!category.isStatus()) {
@@ -162,7 +161,7 @@ public class ToggleService extends Service {
 
         EventPlayer eventPlayer = new EventPlayer(p);
 
-        if (eventPlayer.isStaff()) return;
+        if (isStaff(p)) return;
 
         Toggleable category = Toggleable.CHAT;
         if (!category.isStatus()) {
@@ -174,9 +173,8 @@ public class ToggleService extends Service {
     @EventHandler
     public void onExecuteCMD(PlayerCommandPreprocessEvent e) {
         Player p = e.getPlayer();
-        EventPlayer eventPlayer = new EventPlayer(p);
 
-        if (eventPlayer.isStaff()) return;
+        if (isStaff(p)) return;
 
 
         Toggleable category = Toggleable.COMMANDS;
@@ -191,7 +189,7 @@ public class ToggleService extends Service {
         Player p = e.getPlayer();
         EventPlayer eventPlayer = new EventPlayer(p);
 
-        if (eventPlayer.isStaff()) return;
+        if (isStaff(p)) return;
 
         if (e.getAction().name().contains("AIR")) return;
         Toggleable category = Toggleable.INTERACTIONS;
@@ -267,6 +265,8 @@ public class ToggleService extends Service {
         Toggleable category = Toggleable.KICK_ON_DEATH;
 
         if (category.isStatus()) {
+            if (isStaff(player)) return;
+
             EventUtils.eliminate(player, true);
             e.setCancelled(true);
         }

@@ -9,7 +9,6 @@ import datta.core.content.builders.MenuBuilder;
 import datta.core.content.weapons.GameItem;
 import datta.core.games.CommandGame;
 import datta.core.games.Game;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -133,11 +132,8 @@ public class GameMenu extends BaseCommand {
                             "&7 ideal para una explicacion previa.",
                             " ")
                     .build(), () -> {
-                Location spawn = game.spawn();
-                for (Player t : Bukkit.getOnlinePlayers()) {
-                    t.teleport(spawn.toCenterLocation());
-                }
 
+                game.teleportSpawn();
                 subMenu(player, game);
             });
 

@@ -1,6 +1,7 @@
 package datta.core.games.games;
 
 import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
 import datta.core.Core;
 import datta.core.commands.CallCMD;
@@ -30,10 +31,10 @@ import java.util.Random;
 
 import static datta.core.Core.info;
 import static datta.core.content.builders.ColorBuilder.stringToLocation;
-import static datta.core.content.utils.EventUtils.fix;
-import static datta.core.content.utils.EventUtils.heal;
+import static datta.core.content.utils.EventUtils.*;
 
 
+@CommandPermission("spreenstudios.games")
 @CommandAlias("games")
 public class OleadasDeMobsGame extends Game {
 
@@ -96,12 +97,19 @@ public class OleadasDeMobsGame extends Game {
     @Override
     public List<MenuBuilder.MenuItem> menuItems(Player player) {
         return List.of(
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.BARRIER, "&cEliminar mobs").build(), this::removemobs),
+
                 new MenuBuilder.MenuItem(new ItemBuilder(Material.ZOMBIE_SPAWN_EGG, "&eGenerar 10 Zombies").build(), () -> {
                     genMobs(10, EntityType.ZOMBIE);
                 }),
-
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.VINDICATOR_SPAWN_EGG, "&eGenerar 5 Vindicator").build(), () -> {
-                    genMobs(5, EntityType.VINDICATOR);
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.SKELETON_SPAWN_EGG, "&eGenerar 10 Esqueletos").build(), () -> {
+                    genMobs(10, EntityType.SKELETON);
+                }),
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.HUSK_SPAWN_EGG, "&6Generar 10 Husk").build(), () -> {
+                    genMobs(10, EntityType.HUSK);
+                }),
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.PIGLIN_BRUTE_SPAWN_EGG, "&6Generar 10 Brutos").build(), () -> {
+                    genMobs(10, EntityType.PIGLIN_BRUTE);
                 })
 
         );
@@ -113,53 +121,64 @@ public class OleadasDeMobsGame extends Game {
     }
 
     public void loadLoot(Player player) {
-        PlayerInventory inventory = player.getInventory();
-        heal(player);
+        if (!player.isOp()) {
 
-        ItemStack sword = new ItemBuilder(Material.IRON_SWORD, "&eEspada")
-                .addEnchant(Enchantment.DURABILITY, 5)
-                .hideAll(true)
-                .build();
+            PlayerInventory inventory = player.getInventory();
+            heal(player);
 
-        ItemStack shield = new ItemBuilder(Material.SHIELD, "&eEscudo")
-                .hideAll(true)
-                .build();
+            ItemStack sword = new ItemBuilder(Material.IRON_SWORD, "&eEspada")
+                    .addEnchant(Enchantment.DURABILITY, 5)
+                    .hideAll(true)
+                    .build();
 
-        inventory.setItemInMainHand(sword);
-        inventory.setItemInOffHand(shield);
-        inventory.addItem(new ItemStack(Material.GOLDEN_APPLE, 5));
+            ItemStack shield = new ItemBuilder(Material.SHIELD, "&eEscudo")
+                    .hideAll(true)
+                    .build();
 
-        inventory.setHelmet(new ItemStack(Material.CHAINMAIL_HELMET));
-        inventory.setChestplate(new ItemStack(Material.CHAINMAIL_CHESTPLATE));
-        inventory.setLeggings(new ItemStack(Material.CHAINMAIL_LEGGINGS));
-        inventory.setBoots(new ItemStack(Material.CHAINMAIL_BOOTS));
+            inventory.setItemInMainHand(sword);
+            inventory.setItemInOffHand(shield);
+            inventory.addItem(new ItemStack(Material.GOLDEN_APPLE, 5));
 
+            inventory.setHelmet(new ItemStack(Material.CHAINMAIL_HELMET));
+            inventory.setChestplate(new ItemStack(Material.CHAINMAIL_CHESTPLATE));
+            inventory.setLeggings(new ItemStack(Material.CHAINMAIL_LEGGINGS));
+            inventory.setBoots(new ItemStack(Material.CHAINMAIL_BOOTS));
+
+        }
     }
 
     Random random = new Random();
 
     @Subcommand("mobs genmobs")
     public void genMobs(int count, EntityType type) {
-        Location pos1 = stringToLocation("518 3 367");
-        Location pos2 = stringToLocation("586 3 531");
 
-        int number = random.nextInt(2);
+        List<Location> locations = new ArrayList<>(List.of(
+                stringToLocation("518 3 449"),
+                stringToLocation("587 3 449"),
+                stringToLocation("520 3 529"),
+                stringToLocation("551 3 359"),
+                stringToLocation("585 3 368"),
+                stringToLocation("520 3 369"),
+                stringToLocation("520 3 529"),
+                stringToLocation("584 3 529"),
+                stringToLocation("552 3 498"),
+                stringToLocation("552 3 400"),
+                stringToLocation("552 3 449")
+        ));
+
 
         for (int i = 0; i < count; i++) {
-            Location location;
-            if (number == 1) {
-                location = stringToLocation("587 3 449");
-            } else {
-                location = stringToLocation("517 3 449");
-            }
 
-            Location centerLocation = location.toCenterLocation();
+            Location location = locations.get(random.nextInt(locations.size()));
             World world = location.getWorld();
 
-            world.spawnEntity(centerLocation, type);
-            world.spawnParticle(Particle.CLOUD, centerLocation, 10, 1, 1, 1, 0);
+            world.spawnEntity(location, type);
+            world.spawnParticle(Particle.CLOUD, location, 5, 1, 1, 1, 0);
         }
 
+        for (Player t : Bukkit.getOnlinePlayers()) {
+            SenderUtil.sendActionbar(t, "&8(!) &fGenerando una orda de &7"+fix(type.name()+"&f."));
+        }
         info("Generando " + count + " entidades tipo " + fix(type.name()) + ".");
     }
 
@@ -186,11 +205,10 @@ public class OleadasDeMobsGame extends Game {
             @Override
             public void run() {
                 for (Player t : Bukkit.getOnlinePlayers()) {
-
-                    if (!t.getName().equalsIgnoreCase("SpreenDMC")) {
+                    if (!isStaff(t)) {
                         t.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 150, 255, false, false, false));
                     } else {
-                        t.getInventory().setHelmet(new ItemStack(Material.CARVED_PUMPKIN, 1));
+                        t.getInventory().setHelmet(new ItemStack(Material.CARVED_PUMPKIN,1));
                     }
                 }
             }

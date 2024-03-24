@@ -15,7 +15,7 @@ import static datta.core.content.utils.EventUtils.formatBoolean;
 
 
 @CommandPermission("spreenstudios.info")
-@CommandAlias("info|sc|oplog")
+@CommandAlias("info|sc|oplog|log")
 public class InfoCMD extends BaseCommand {
 
 
@@ -33,8 +33,7 @@ public class InfoCMD extends BaseCommand {
             Core.disableLog.add(player);
         }
 
-
-        String actual = formatBoolean(!Core.disableLog.contains(player), "Activado", "Deshabilitado");
+        String actual = formatBoolean(!Core.disableLog.contains(player), "Deshabilitado", "Activado");
         SenderUtil.sendMessage(player, "%core_prefix% &eSe ha alternado el buzón de información de administración para ti. Ahora está " + actual + ".");
     }
 
@@ -48,7 +47,7 @@ public class InfoCMD extends BaseCommand {
             Core.disableLog.add(player);
         }
 
-        String actual = formatBoolean(!Core.disableLog.contains(player), "Activado", "Deshabilitado");
+        String actual = formatBoolean(!Core.disableLog.contains(player), "Deshabilitado", "Activado");
 
         SenderUtil.sendMessage(player, "%core_prefix% &e"+sender.getName()+" te ha alternado el registro de operador, Ahora el estado está en " + actual + ".");
         SenderUtil.sendMessage(sender, "%core_prefix% &eSe ha alternado el buzón de información de administración para " + player.getName() + ". Ahora está " + actual + ".");

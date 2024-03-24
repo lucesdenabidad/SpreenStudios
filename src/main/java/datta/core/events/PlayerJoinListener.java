@@ -8,11 +8,13 @@ import org.bukkit.event.player.PlayerJoinEvent;
 public class PlayerJoinListener implements Listener {
 
     @EventHandler
-    public void playerJoin(PlayerJoinEvent event){
+    public void playerJoin(PlayerJoinEvent event) {
 
-        if (event.getPlayer().isOp()){
-            Core.info(event.getPlayer().getName() + " se ha conectado.");
+        String joinmsg = event.getPlayer().getName() + " se ha conectado.";
+        if (event.getPlayer().isOp()) {
+            joinmsg = "&d" + event.getPlayer().getName() + "&f se ha conectado.";
         }
+        Core.info(joinmsg);
 
         event.setJoinMessage(null);
     }

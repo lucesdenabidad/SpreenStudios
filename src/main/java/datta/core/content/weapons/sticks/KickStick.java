@@ -31,7 +31,7 @@ public class KickStick extends Stick {
 
     @Override
     public ItemStack item() {
-        return new ItemBuilder(Material.STICK, "&dPalito asesinador")
+        return new ItemBuilder(Material.STICK, "&dPalito pal lobby")
                 .addEnchant(Enchantment.LUCK, 1)
                 .hideAll(true)
                 .build();
@@ -56,7 +56,7 @@ public class KickStick extends Stick {
             ItemStack itemInMainHand = inventory.getItemInMainHand();
             if (itemInMainHand.isSimilar(item())) {
 
-                EventUtils.eliminate(target, false);
+                EventUtils.eliminate(target, true);
             }
         }
     }

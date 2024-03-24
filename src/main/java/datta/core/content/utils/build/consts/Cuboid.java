@@ -1,6 +1,5 @@
 package datta.core.content.utils.build.consts;
 
-import com.google.common.collect.Lists;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -80,9 +79,9 @@ public class Cuboid {
     }
     public List<Block> blockList() {
         List<Block> bL = new ArrayList<>(this.getTotalBlockSize());
-        for(int x = this.xMin; x <= this.xMax; ++x) {
-            for(int y = this.yMin; y <= this.yMax; ++y) {
-                for(int z = this.zMin; z <= this.zMax; ++z) {
+        for (int x = this.xMin; x <= this.xMax; ++x) {
+            for (int y = this.yMin; y <= this.yMax; ++y) {
+                for (int z = this.zMin; z <= this.zMax; ++z) {
                     Block b = this.world.getBlockAt(x, y, z);
                     bL.add(b);
                 }
@@ -150,7 +149,7 @@ public class Cuboid {
     }
 
     public List<Location> getHollowCube(double particleDistance) {
-        List<Location> result = Lists.newArrayList();
+        List<Location> result = new ArrayList<>();
         double minX = xMin;
         double minY = yMin;
         double minZ = zMin;
@@ -175,7 +174,7 @@ public class Cuboid {
     }
 
     public List<Block> getWallBlocks() {
-        List<Block> result = Lists.newArrayList();
+        List<Block> result = new ArrayList<>();
         for (int x = xMin; x <= xMax; x++) {
             for (int y = yMin; y <= yMax; y++) {
                 for (int z = zMin; z <= zMax; z++) {

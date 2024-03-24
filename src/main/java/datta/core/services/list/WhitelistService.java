@@ -5,10 +5,13 @@ import datta.core.Core;
 import datta.core.content.configuration.Configuration;
 import datta.core.services.Service;
 import datta.core.utils.SenderUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static datta.core.content.builders.ColorBuilder.color;
@@ -44,7 +47,6 @@ public class WhitelistService extends Service {
     public void onUnload() {
         register(true, false);
     }
-
 
 
     public void refreshList() {
@@ -87,12 +89,36 @@ public class WhitelistService extends Service {
         SenderUtil.sendMessage(sender, "%core_prefix% &aSe ha agregado a " + target + " a la lista de ingreso.");
     }
 
+    @Subcommand("add all")
+    public void addAllWhitelist(CommandSender sender) {
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+            addToWhitelist(onlinePlayer.getName());
+
+
+        SenderUtil.sendMessage(sender, "%core_prefix% &aSe han agregado todos los conectados a la lista de ingreso.");
+    }
+
     @CommandCompletion("@whitelist_players")
     @Subcommand("remove")
     public void removeWhitelist(CommandSender sender, String target) {
         removeFromWhitelist(target);
         SenderUtil.sendMessage(sender, "%core_prefix% &cSe ha eliminado a " + target + " a la lista de ingreso.");
     }
+
+
+    @Subcommand("clear")
+    public void clearWhitelist(CommandSender sender) {
+
+        List<String> list = new ArrayList<>(List.of("datta", "idpabloski"));
+
+        configuration.set("whitelist.list", list);
+        configuration.safeSave();
+        getWhitelist().clear();
+        refreshList();
+
+        SenderUtil.sendMessage(sender, "%core_prefix% &cSe ha limpiado la whitelist.");
+    }
+
 
     @Subcommand("list")
     public void getList(CommandSender sender) {

@@ -18,6 +18,7 @@ public class CoreMethods {
         commandService.registerService(new SitService());
         commandService.registerService(new ScoreboardService(Core.getInstance().defaultTitle, Core.getInstance().defaultLines));
         commandService.registerService(new WarpService());
+        commandService.registerService(new VanishService());
     }
 
     public static void listener(Listener listener){

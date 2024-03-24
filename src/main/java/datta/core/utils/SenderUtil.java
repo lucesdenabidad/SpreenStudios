@@ -35,6 +35,9 @@ public class SenderUtil {
     public static void sendSound(Player sender, Sound sound, float volume, float pitch) {
         sender.playSound(sender.getLocation(), sound, volume, pitch);
     }
+    public static void sendSound(Player sender, String sound, float volume, float pitch) {
+        sender.playSound(sender.getLocation(), sound, volume, pitch);
+    }
 
 
     public static void sendBroadcast(String... message) {

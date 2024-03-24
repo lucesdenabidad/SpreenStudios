@@ -2,6 +2,7 @@ package datta.core.games.games;
 
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandCompletion;
+import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
 import datta.core.Core;
 import datta.core.commands.CallCMD;
@@ -11,12 +12,17 @@ import datta.core.content.builders.MenuBuilder;
 import datta.core.content.utils.EventUtils;
 import datta.core.content.utils.build.consts.Cuboid;
 import datta.core.games.Game;
+import datta.core.services.individual.FreezeList;
+import datta.core.services.individual.Glow;
+import datta.core.services.list.TimerService;
 import datta.core.services.list.ToggleService;
 import datta.core.utils.SenderUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -30,6 +36,7 @@ import java.util.*;
 import static datta.core.content.builders.ColorBuilder.color;
 import static datta.core.content.builders.ColorBuilder.stringToLocation;
 
+@CommandPermission("spreenstudios.games")
 @CommandAlias("games")
 public class ReyDeLaColinaGame extends Game {
     ItemStack itemStack = new ItemBuilder(Material.STICK, "&ePalo")
@@ -53,6 +60,8 @@ public class ReyDeLaColinaGame extends Game {
     @Override
     public void start() {
         game(() -> {
+
+
             CallCMD.callToggleable(ToggleService.Toggleable.PVP, false);
             CallCMD.callToggleable(ToggleService.Toggleable.FALL_DAMAGE, false);
             CallCMD.callToggleable(ToggleService.Toggleable.FOOD, false);
@@ -71,8 +80,9 @@ public class ReyDeLaColinaGame extends Game {
             }
 
             CallCMD.callToggleable(ToggleService.Toggleable.PVP, true, true);
-
             task();
+
+            TimerService.bossBarTimer("{time}", BarColor.PURPLE, BarStyle.SOLID, 600, this::stop);
         });
     }
 
@@ -84,6 +94,20 @@ public class ReyDeLaColinaGame extends Game {
             if (task != null) task.cancel();
         });
     }
+    @Subcommand("reydelacolina stop")
+    public void stop() {
+        if (task != null) task.cancel();
+
+        TimerService.removeActionbar();
+        TimerService.removeActionbar();
+
+        for (Player t : Bukkit.getOnlinePlayers()) {
+            t.getInventory().clear();
+            SenderUtil.sendActionbar(t, "&c¡RING RING!", Sound.ENTITY_ITEM_PICKUP);
+        }
+
+    }
+
 
     @Override
     public List<String> scoreboard() {
@@ -169,11 +193,6 @@ public class ReyDeLaColinaGame extends Game {
         Integer i = pointsMap.getOrDefault(player, 0);
         int newPoints = i + points;
 
-        for (Player t : Bukkit.getOnlinePlayers()) {
-            SenderUtil.sendActionbar(t, "&a(+) &e" + player.getName() + " &festa sumando puntos: &a" + newPoints + " puntos");
-        }
-
-        player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 20, 0, false, false, false));
         pointsMap.put(player, newPoints);
     }
 
@@ -201,14 +220,27 @@ public class ReyDeLaColinaGame extends Game {
 
     @CommandCompletion(" Cantidad-de-Sobrevivientes")
     @Subcommand("reydelacolina removeplayers")
-    public void removePlayers(int survivorsPerTop) {
+    public void removePlayers(int survivorsTOP) {
+
+        List<Map.Entry<Player, Integer>> sortedEntries = new ArrayList<>(pointsMap.entrySet());
+        sortedEntries.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
+
         List<Player> survivors = new ArrayList<>();
-        for (int i = 0; i < survivorsPerTop; i++) {
-            Player topPlayer = getTopPlayer(i);
-            survivors.add(topPlayer);
+        for (int i = 0; i < survivorsTOP && i < sortedEntries.size(); i++) {
+            survivors.add(sortedEntries.get(i).getKey());
         }
 
-        EventUtils.removePlayersIsNotList(survivors, true);
-    }
 
+        for (Player t : Bukkit.getOnlinePlayers()) {
+            if (!t.isOp()) {
+
+                if (!survivors.contains(t)) {
+
+                    EventUtils.addPlayerColor(t, "&c");
+                    FreezeList.freezePlayer(t, true);
+                    Glow.glowPlayer(t, true);
+                }
+            }
+        }
+    }
 }

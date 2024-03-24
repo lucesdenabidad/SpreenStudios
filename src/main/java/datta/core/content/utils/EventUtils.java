@@ -1,7 +1,6 @@
 package datta.core.content.utils;
 
 import datta.core.Core;
-import datta.core.content.CoreTask;
 import datta.core.content.builders.FireworkBuilder;
 import datta.core.utils.SenderUtil;
 import org.bukkit.*;
@@ -42,9 +41,8 @@ public class EventUtils {
 
     public static void removePlayersIsNotList(List<Player> list, boolean kick) {
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            EventPlayer eventPlayer = new EventPlayer(onlinePlayer);
 
-            if (eventPlayer.isStaff()) return;
+            if (isStaff(onlinePlayer)) return;
             if (!list.contains(onlinePlayer)) {
                 eliminate(onlinePlayer, kick);
             }
@@ -55,32 +53,25 @@ public class EventUtils {
     public static void eliminate(Player player, boolean kick) {
         World world = player.getWorld();
 
-
-        world.spawnParticle(Particle.SMALL_FLAME, player.getLocation(), 10, 0, 3, 0, 1);
+        if (isStaff(player)) return;
 
         FireworkBuilder fireworkBuilder = new FireworkBuilder()
                 .colors(Color.RED, Color.WHITE)
                 .power(1);
 
-        fireworkBuilder.spawn(player.getLocation(), player);
+        fireworkBuilder.spawnAndDetonate(player.getLocation().clone().add(0,1,0));
 
 
-        CoreTask.runTask(() -> {
-            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BLAZE_SHOOT, 1, 1);
+        if (kick) {
+            player.kickPlayer(color("&c¡Gracias por jugar!"));
+        } else {
+            player.setHealth(0);
+        }
 
-            if (kick) {
-                player.kickPlayer(color("&c¡Gracias por jugar!"));
-            } else {
-                player.setHealth(0);
-            }
-
-
-            for (Player t : Bukkit.getOnlinePlayers()) {
-                SenderUtil.sendMessage(t, "%core_prefix% &c" + player.getName() + "&f fue eliminado del evento.");
-            }
-        }, 25L);
+        for (Player t : Bukkit.getOnlinePlayers()) {
+            SenderUtil.sendActionbar(t, "&c(☠) " + player.getName() + "&f fue eliminado &7(%core_alive%/%server_max_players%)");
+        }
     }
-
 
     public static String formatBoolean(boolean value, String isTrue, String isFalse) {
         return value ? color(isTrue) : color(isFalse);
@@ -194,5 +185,12 @@ public class EventUtils {
                 .colors(Color.LIME,Color.GREEN,Color.WHITE);
 
         fireworkBuilder.spawn(location);
+    }
+
+    public static boolean isStaff(Player t) {
+        if (t.isOp()){
+            return true;
+        }
+        return false;
     }
 }

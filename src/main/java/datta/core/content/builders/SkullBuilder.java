@@ -3,7 +3,6 @@ package datta.core.content.builders;
 // Copyright (c) 2017 deanveloper (see LICENSE.md for more info)
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.SkullType;
@@ -266,7 +265,6 @@ public class SkullBuilder {
 				b64.substring(b64.length() - 10).hashCode()
 		);
 		GameProfile profile = new GameProfile(id, "Player");
-		profile.getProperties().put("textures", new Property("textures", b64));
 		return profile;
 	}
 

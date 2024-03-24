@@ -1,12 +1,12 @@
 package datta.core.games.games;
 
 import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
 import datta.core.Core;
 import datta.core.commands.CallCMD;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
-import datta.core.content.utils.EventPlayer;
 import datta.core.content.utils.EventUtils;
 import datta.core.content.utils.build.BuildUtils;
 import datta.core.content.utils.build.consts.Cuboid;
@@ -31,7 +31,7 @@ import java.util.List;
 import static datta.core.content.builders.ColorBuilder.stringToLocation;
 import static datta.core.content.utils.build.BuildUtils.replace;
 
-
+@CommandPermission("spreenstudios.games")
 @CommandAlias("games")
 public class ElSueloEsLavaGame extends Game {
     @Override
@@ -41,7 +41,7 @@ public class ElSueloEsLavaGame extends Game {
 
     @Override
     public Location spawn() {
-        return stringToLocation("401 3 549");
+        return stringToLocation("328 3 572");
     }
 
 
@@ -65,7 +65,7 @@ public class ElSueloEsLavaGame extends Game {
             }
 
             TimerService.actionbarTimer(30, () -> {
-                moreLava();
+                moreLava(2);
 
                 startLavaTask();
             });
@@ -76,6 +76,7 @@ public class ElSueloEsLavaGame extends Game {
     @Override
     public void end() {
         end(() -> {
+            cancelLavaTask();
             resetMap();
             door(true);
         });
@@ -92,7 +93,9 @@ public class ElSueloEsLavaGame extends Game {
 
                 new MenuBuilder.MenuItem(new ItemBuilder(Material.WOODEN_AXE, "&aResetear mapa").build(), this::resetMap),
 
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.LIME_DYE, "&aAumentar 1 nivel de lava").build(), this::moreLava),
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.LIME_DYE, "&aAumentar 1 nivel de lava").build(), () ->{
+                    moreLava(1);
+                }),
                 new MenuBuilder.MenuItem(new ItemBuilder(Material.ORANGE_DYE, "&6Disminuir 1 nivel de lava").build(), this::lessLava),
 
                 new MenuBuilder.MenuItem(new ItemBuilder(Material.SLIME_BALL, "&aIniciar 'LavaTask'").build(), this::startLavaTask),
@@ -105,25 +108,25 @@ public class ElSueloEsLavaGame extends Game {
         return Material.LAVA_BUCKET;
     }
 
-    public Location pos1 = stringToLocation("440 3 510");
-    public static Location pos2 = stringToLocation("363 3 587");
+    public Location pos1 = stringToLocation("388 3 632");
+    public static Location pos2 = stringToLocation("267 3 511");
 
     public static Location updatedLocation = pos2.clone();
     public static int level = updatedLocation.getBlockY();
     private BukkitTask task;
-    private final int later = 5;
-    private final int levelPerLater = 3;
+    private final int later = 7;
+    private final int levelPerLater = 1;
 
     public void startLavaTask() {
         cancelLavaTask();
 
         task = new BukkitRunnable() {
             int time = 0;
+
             @Override
             public void run() {
                 if (time == later) {
-                    for (int i = 0; i < levelPerLater; i++)
-                        moreLava();
+                    moreLava(levelPerLater);
 
                     time = 0;
                 }
@@ -150,17 +153,17 @@ public class ElSueloEsLavaGame extends Game {
     }
 
 
-    @Subcommand("lava mapreset")
+    @Subcommand("lava reset")
     public void resetMap() {
-        Cuboid cuboid = new Cuboid("440 48 510 363 2 587");
+        Cuboid cuboid = new Cuboid("388 47 632 267 2 511");
         replace(cuboid, Material.LAVA, Material.AIR);
 
         level = pos2.clone().getBlockY();
     }
 
     @Subcommand("lava subir")
-    public void moreLava() {
-        if (level == 35){
+    public void moreLava(int aumentar) {
+        if (level > 42) {
             cancelLavaTask();
             return;
         }
@@ -173,7 +176,9 @@ public class ElSueloEsLavaGame extends Game {
         for (Player onlinePlayer : Bukkit.getOnlinePlayers())
             SenderUtil.sendActionbar(onlinePlayer, "&#cf1020La lava a aumentado de nivel...");
 
-        level++;
+        for (int i = 0; i < aumentar; i++) {
+            level++;
+        }
     }
 
     @Subcommand("lava bajar")
@@ -199,18 +204,19 @@ public class ElSueloEsLavaGame extends Game {
         Player player = event.getPlayer();
         Location location = player.getLocation();
         Block block = location.getBlock();
-        EventPlayer eventPlayer = new EventPlayer(player);
-        if (eventPlayer.isStaff()) return;
 
-        if (block.getType() == Material.LAVA) {
-            EventUtils.eliminate(player, true);
+        if (!player.isOp()) {
+
+            if (block.getType() == Material.LAVA) {
+                EventUtils.eliminate(player, true);
+            }
         }
     }
 
 
     @Subcommand("lava door")
     public void door(boolean value) {
-        Cuboid cuboid = new Cuboid("406 5 553 397 3 544");
+        Cuboid cuboid = new Cuboid("322 3 577 332 5 567");
 
         if (value) {
             BuildUtils.walls(cuboid, Material.BARRIER);

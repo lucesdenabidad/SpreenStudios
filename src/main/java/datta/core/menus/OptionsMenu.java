@@ -61,7 +61,7 @@ public class OptionsMenu {
                 }
             });
 
-            if (Core.disableLog.contains(player)){ // Activar
+            if (!Core.disableLog.contains(player)){ // Activar
                 menuBuilder.setItem(player, slot(7, 2), new ItemBuilder(Material.WARPED_SIGN, "&aActivar recibir registros")
                         .addLore("",
                                 "&7 Haz click para activar los mensajes de operador",

@@ -1,6 +1,5 @@
 package datta.core.content.builders;
 
-import org.apache.commons.lang.Validate;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -13,7 +12,6 @@ public class ParticleBuilder {
     public static void sendParticleLines(Location point1, Location point2) {
         double space = 0.1;
         World world = point1.getWorld();
-        Validate.isTrue(point2.getWorld().equals(world), "Lines cannot be in different worlds!");
         double distance = point1.distance(point2);
         Vector p1 = point1.toVector();
         Vector p2 = point2.toVector();

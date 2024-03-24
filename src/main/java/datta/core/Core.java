@@ -24,6 +24,8 @@ import datta.core.games.games.*;
 import datta.core.menus.GameMenu;
 import datta.core.services.CommandService;
 import datta.core.commands.CallCMD;
+import datta.core.services.individual.FreezeList;
+import datta.core.services.individual.Glow;
 import datta.core.services.list.ToggleService;
 import datta.core.utils.SenderUtil;
 import lombok.Getter;
@@ -76,10 +78,10 @@ public class Core extends JavaPlugin {
         portalManager = new PortalManager(this);
 
         commandGame.registerGame(new ElSueloEsLavaGame(), true, true);
-        commandGame.registerGame(new PuertasGame(), true, true);
         commandGame.registerGame(new OleadasDeMobsGame(), true, true);
-        commandGame.registerGame(new SillitasGame(), true, true);
+        commandGame.registerGame(new PuertasGame(), true, true);
         commandGame.registerGame(new ReyDeLaColinaGame(),true,true);
+        commandGame.registerGame(new SillitasGame(), true, true);
 
         commandManager.registerCommand(new DevCMD());
         commandManager.registerCommand(new GameMenu());
@@ -91,6 +93,7 @@ public class Core extends JavaPlugin {
         commandManager.registerCommand(new ColorCMD());
         commandManager.registerCommand(new TpallCMD());
         commandManager.registerCommand(new CallCMD());
+        commandManager.registerCommand(new EliminateCMD());
 
         Stick.registerStick(new PunchStick());
         Stick.registerStick(new KickStick());
@@ -103,7 +106,8 @@ public class Core extends JavaPlugin {
         listener(new PlayerJoinListener());
         listener(new PlayerChangeGamemodeListener());
 
-
+        listener(new FreezeList());
+        Glow glow = new Glow();
 
         commandManager.getLocales().addMessageBundle("core", Locales.SPANISH);
         commandManager.getLocales().setDefaultLocale(Locales.SPANISH);

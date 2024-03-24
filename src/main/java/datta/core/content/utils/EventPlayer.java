@@ -18,10 +18,6 @@ public class EventPlayer {
         return list.contains(player);
     }
 
-    public boolean isStaff() {
-        return player.isOp() || player.hasPermission("*") || player.hasPermission("spreenstudios.staff");
-    }
-
     public String color() {
         return COLORS.getOrDefault(player, "");
     }
