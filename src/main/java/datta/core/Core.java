@@ -13,17 +13,12 @@ import datta.core.content.weapons.Weapon;
 import datta.core.content.weapons.sticks.KickStick;
 import datta.core.content.weapons.sticks.KillStick;
 import datta.core.content.weapons.sticks.PunchStick;
-import datta.core.events.PlayerChangeGamemodeListener;
-import datta.core.events.PlayerDeathListener;
-import datta.core.events.PlayerJoinListener;
-import datta.core.events.PlayerQuitListener;
-import datta.core.games.CommandGame;
+import datta.core.events.*;
 import datta.core.games.Game;
-import datta.core.games.GamesCommand;
-import datta.core.games.games.*;
+import datta.core.games.GameManager;
+import datta.core.games.commands.GamesCommand;
 import datta.core.menus.GameMenu;
 import datta.core.services.CommandService;
-import datta.core.commands.CallCMD;
 import datta.core.services.individual.FreezeList;
 import datta.core.services.individual.Glow;
 import datta.core.services.list.ToggleService;
@@ -41,6 +36,7 @@ import static datta.core.CoreMethods.listener;
 
 public class Core extends JavaPlugin {
 
+    public static String endAt = "?";
     private static @Getter Core instance;
     public @Getter PaperCommandManager commandManager;
     public static MenuBuilder menuBuilder;
@@ -51,12 +47,20 @@ public class Core extends JavaPlugin {
     public CommandService commandService;
     public String prefix;
     public CoreParse coreParse;
-    public CommandGame commandGame;
+    public GameManager gameManager;
     public static List<Player> disableLog = new ArrayList<>();
     public PortalManager portalManager;
 
     public String defaultTitle = "&5&lEventos";
     public List<String> defaultLines = new ArrayList<>();
+
+    public static void setEndAt(int i) {
+        if (i != 0) {
+            endAt = String.valueOf(i);
+        } else {
+            endAt = "?";
+        }
+    }
 
 
     @Override
@@ -67,21 +71,16 @@ public class Core extends JavaPlugin {
         commandService = new CommandService(this);
         configurationManager = new ConfigurationManager(this);
         config = configurationManager.getConfig("configuration.yml");
-
         CoreMethods.loadServices(commandService);
         commandService.loadServices();
 
-        commandGame = new CommandGame(this);
+        gameManager = new GameManager(this);
         prefix = "&5&lEvento &8»";
         coreParse = new CoreParse();
 
         portalManager = new PortalManager(this);
 
-        commandGame.registerGame(new ElSueloEsLavaGame(), true, true);
-        commandGame.registerGame(new OleadasDeMobsGame(), true, true);
-        commandGame.registerGame(new PuertasGame(), true, true);
-        commandGame.registerGame(new ReyDeLaColinaGame(),true,true);
-        commandGame.registerGame(new SillitasGame(), true, true);
+        gameManager.loadGamesFromList();
 
         commandManager.registerCommand(new DevCMD());
         commandManager.registerCommand(new GameMenu());
@@ -94,6 +93,7 @@ public class Core extends JavaPlugin {
         commandManager.registerCommand(new TpallCMD());
         commandManager.registerCommand(new CallCMD());
         commandManager.registerCommand(new EliminateCMD());
+        commandManager.registerCommand(new PutCMD());
 
         Stick.registerStick(new PunchStick());
         Stick.registerStick(new KickStick());
@@ -105,8 +105,8 @@ public class Core extends JavaPlugin {
         listener(new PlayerDeathListener());
         listener(new PlayerJoinListener());
         listener(new PlayerChangeGamemodeListener());
-
         listener(new FreezeList());
+        listener(new EntityDamagebyEntityListener());
         Glow glow = new Glow();
 
         commandManager.getLocales().addMessageBundle("core", Locales.SPANISH);
@@ -129,28 +129,25 @@ public class Core extends JavaPlugin {
 
     public static void info(String... s) {
         for (String e : s) {
-            SenderUtil.sendMessage(Bukkit.getServer().getConsoleSender(), "&7[SpreenStudios] [Log] &r"+e);
+            SenderUtil.sendMessage(Bukkit.getServer().getConsoleSender(), "&7[SpreenStudios] [Log] &r" + e);
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 if (onlinePlayer.isOp() && disableLog.contains(onlinePlayer)) {
-                    SenderUtil.sendMessage(onlinePlayer, "&8[Log] &r"+e);
+                    SenderUtil.sendMessage(onlinePlayer, "&8[Log] &r" + e);
                 }
             }
         }
     }
 
 
-    public static void callSetting(ToggleService.Toggleable toggleable, boolean value){
+    public static void callSetting(ToggleService.Toggleable toggleable, boolean value) {
         toggleable.set(value);
         toggleable.save();
-        info(toggleable.name() + " se cambio a &e"+value+"&f.");
+        info(toggleable.name() + " se cambio a &e" + value + "&f.");
     }
 
     public void stopGames() {
-        for (Game game : commandGame.gameList) {
+        for (Game game : gameManager.games) {
             game.end();
         }
-
-        ToggleService.Toggleable.PVP.set(false);
-        ToggleService.Toggleable.PVP.save();
     }
 }

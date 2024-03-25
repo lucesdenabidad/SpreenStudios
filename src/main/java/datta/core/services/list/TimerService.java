@@ -28,6 +28,9 @@ public class TimerService extends Service {
     private static BukkitTask bossbarTask;
     private static BukkitTask actionbartask;
 
+    public static int bossbarTime = 0;
+    public static int actionbarTime = 0;
+
     @Override
     public Core instance() {
         return Core.getInstance();
@@ -98,8 +101,10 @@ public class TimerService extends Service {
 
                 for (Player onlinePlayer : Bukkit.getOnlinePlayers())
                     onlinePlayer.sendActionBar(formatTime(totalTimeSeconds));
+                actionbarTime = totalTimeSeconds;
 
                 if (totalTimeSeconds == 0) {
+                    actionbarTime = 0;
                     CoreTask.runTask(plugin, runnable, 20L);
                     cancel();
                 }
@@ -134,11 +139,12 @@ public class TimerService extends Service {
 
                 bossBar.setProgress(Math.max(0, Math.min(progress, 1)));
                 bossBar.setTitle(color(finalTitle));
+                bossbarTime = totalTimeSeconds;
 
                 if (totalTimeSeconds == 0) {
                     CoreTask.runTask(plugin, runnable, 20L);
 
-
+                    bossbarTime = 0;
                     bossBar.setVisible(false);
                     bossBar.removeAll();
                     cancel();

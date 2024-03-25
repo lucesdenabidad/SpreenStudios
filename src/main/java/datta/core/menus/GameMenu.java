@@ -7,8 +7,8 @@ import datta.core.Core;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
 import datta.core.content.weapons.GameItem;
-import datta.core.games.CommandGame;
 import datta.core.games.Game;
+import datta.core.games.GameManager;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -24,7 +24,7 @@ public class GameMenu extends BaseCommand {
     @CommandPermission("spreenstudios.gamemenu")
     @CommandAlias("gamemenu")
     public static void open(Player player) {
-        CommandGame commandGame = Core.getInstance().commandGame;
+        GameManager gameManager = Core.getInstance().gameManager;
 
         menuBuilder.createMenu(player, "Menu de juegos", 9 * 5, false);
         menuBuilder.setContents(player, () -> {
@@ -32,7 +32,7 @@ public class GameMenu extends BaseCommand {
             int[] gameSlots = {12, 13, 14, 15, 21, 22, 23, 24, 29, 30, 31, 32, 33};
             int index = 0;
 
-            for (Game game : commandGame.gameList) {
+            for (Game game : gameManager.games) {
                 String name = game.name();
                 Material type = game.menuItem();
 
@@ -58,6 +58,13 @@ public class GameMenu extends BaseCommand {
                 menuBuilder.setItem(player, slot, new ItemBuilder(Material.BLACK_STAINED_GLASS_PANE, "").build(), () -> {
                 });
             }
+
+            menuBuilder.setItem(player, slot(8, 5), new ItemBuilder(Material.MUSIC_DISC_CAT, "&2→ &aSímon Dice")
+                    .addLore("", "&7 Haz click para abrir el menú de manejo del 'Simón Dice'", "")
+                    .hideAll(true).build(), () -> {
+                SimonDiceMenu.open(player);
+            });
+
 
             menuBuilder.setItem(player, slot(1, 2), new ItemBuilder(Material.STICK, "&6→ &ePalos").addLore(
                             "",
@@ -91,7 +98,7 @@ public class GameMenu extends BaseCommand {
                             "",
                             "&7Haz clic para ver opciones generales.",
                             "")
-                            .setHeadUrl("933742118647add7a11e1379b8627bedc7548e2b5e44a19a729cc41a9d265ef")
+                    .setHeadUrl("933742118647add7a11e1379b8627bedc7548e2b5e44a19a729cc41a9d265ef")
                     .build(), () -> {
                 OptionsMenu.open(player);
             });

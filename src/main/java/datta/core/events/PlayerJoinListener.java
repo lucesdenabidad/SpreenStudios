@@ -1,6 +1,8 @@
 package datta.core.events;
 
 import datta.core.Core;
+import datta.core.commands.InfoCMD;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -17,5 +19,18 @@ public class PlayerJoinListener implements Listener {
         Core.info(joinmsg);
 
         event.setJoinMessage(null);
+    }
+
+    @EventHandler
+    public void joinStaff(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        String name = player.getName();
+        boolean op = player.isOp();
+        if (op) {
+            if (!name.equalsIgnoreCase("SpreenDMC")) {
+
+                InfoCMD.set(player, true);
+            }
+        }
     }
 }

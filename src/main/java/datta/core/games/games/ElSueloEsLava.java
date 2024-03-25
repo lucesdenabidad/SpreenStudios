@@ -33,7 +33,12 @@ import static datta.core.content.utils.build.BuildUtils.replace;
 
 @CommandPermission("spreenstudios.games")
 @CommandAlias("games")
-public class ElSueloEsLavaGame extends Game {
+public class ElSueloEsLava extends Game {
+    @Override
+    public int endAt() {
+        return 120;
+    }
+
     @Override
     public String name() {
         return "El Suelo es Lava";
@@ -41,7 +46,7 @@ public class ElSueloEsLavaGame extends Game {
 
     @Override
     public Location spawn() {
-        return stringToLocation("328 3 572");
+        return stringToLocation("328 4 504");
     }
 
 
@@ -216,12 +221,12 @@ public class ElSueloEsLavaGame extends Game {
 
     @Subcommand("lava door")
     public void door(boolean value) {
-        Cuboid cuboid = new Cuboid("322 3 577 332 5 567");
+        Cuboid cuboid = new Cuboid("332 3 510 323 13 510");
 
         if (value) {
-            BuildUtils.walls(cuboid, Material.BARRIER);
+            BuildUtils.set(cuboid, Material.BARRIER);
         } else {
-            BuildUtils.walls(cuboid, Material.AIR);
+            BuildUtils.set(cuboid, Material.AIR);
         }
     }
 }

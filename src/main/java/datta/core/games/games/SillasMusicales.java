@@ -24,11 +24,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static datta.core.content.builders.ColorBuilder.stringToLocation;
+import static datta.core.content.utils.EventUtils.isStaff;
 import static datta.core.content.utils.build.BuildUtils.replace;
 
 @CommandPermission("spreenstudios.games")
 @CommandAlias("games")
-public class SillitasGame extends Game {
+public class SillasMusicales extends Game {
+
+    @Override
+    public int endAt() {
+        return 0;
+    }
+
     @Override
     public String name() {
         return "Sillitas Musicales";
@@ -42,6 +49,11 @@ public class SillitasGame extends Game {
     @Override
     public void start() {
         game(() -> {
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                if (isStaff(onlinePlayer)){
+                    getItems(onlinePlayer);
+                }
+            }
         });
     }
 
@@ -65,9 +77,7 @@ public class SillitasGame extends Game {
     public List<MenuBuilder.MenuItem> menuItems(Player player) {
         return List.of(
 
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.LIGHTNING_ROD, "&eGenerar Silla").build(), this::spawnChairs),
-
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.LIME_DYE, "&aIniciar Ronda").build(), this::game),
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.LIGHTNING_ROD, "&eGenerar Sillas").build(), this::spawnChairs),
                 new MenuBuilder.MenuItem(new ItemBuilder(Material.RED_DYE, "&cEliminar jugadores").build(), this::removePlayers),
                 new MenuBuilder.MenuItem(new ItemBuilder(Material.MUSIC_DISC_5, "&eMusica").build(), () -> {
                     playOrStopMusic(!defaultStatus);
@@ -84,9 +94,6 @@ public class SillitasGame extends Game {
         return Material.OAK_STAIRS;
     }
 
-    public void game() {
-        spawnChairs();
-    }
 
     List<MenuBuilder.MenuItem> menuItems = new ArrayList<>(List.of(
             new MenuBuilder.MenuItem(new ItemBuilder(Material.LIME_DYE, "&aPrender Musica").build(), () -> {
@@ -97,7 +104,6 @@ public class SillitasGame extends Game {
                 playOrStopMusic(false);
             }),
 
-            new MenuBuilder.MenuItem(new ItemBuilder(Material.ARMOR_STAND, "&aColocar sillas").build(), this::game),
             new MenuBuilder.MenuItem(new ItemBuilder(Material.TNT_MINECART, "&cQuitar sillas").build(), this::removeChairs),
             new MenuBuilder.MenuItem(new ItemBuilder(Material.BARRIER, "&cEliminar jugadores").build(), this::removePlayers)
     ));
@@ -111,6 +117,7 @@ public class SillitasGame extends Game {
         ItemStack itemStack = new ItemBuilder(Material.LIGHTNING_ROD, "&eSilla").build();
         inventory.addItem(itemStack);
     }
+
 
     @EventHandler
     public void interact(PlayerInteractEvent event) {

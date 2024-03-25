@@ -10,11 +10,11 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent;
 public class PlayerChangeGamemodeListener implements Listener {
 
     @EventHandler
-    public void change(PlayerGameModeChangeEvent event){
+    public void change(PlayerGameModeChangeEvent event) {
         Player player = event.getPlayer();
         GameMode newGameMode = event.getNewGameMode();
-
-
-        Core.info(player.getName() +" cambio su modo de juego a &7" +newGameMode.name()+"&f.");
+        if (player.isOp()) {
+            Core.info(player.getName() + " cambio su modo de juego a &7" + newGameMode.name() + "&f.");
+        }
     }
 }

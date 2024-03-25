@@ -1,8 +1,9 @@
 package datta.core;
 
 import datta.core.content.utils.EventPlayer;
-import datta.core.games.games.ElSueloEsLavaGame;
-import datta.core.games.games.ReyDeLaColinaGame;
+import datta.core.games.games.ElSueloEsLava;
+import datta.core.games.games.ReyDeLaColina;
+import datta.core.services.list.TimerService;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -10,7 +11,8 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 
-import static datta.core.games.games.ReyDeLaColinaGame.getTop;
+import static datta.core.content.builders.ColorBuilder.formatTime;
+import static datta.core.games.games.ReyDeLaColina.getTop;
 
 public class CoreParse extends PlaceholderExpansion {
     @Override
@@ -48,13 +50,13 @@ public class CoreParse extends PlaceholderExpansion {
                     .filter(player -> player.getGameMode() == GameMode.SURVIVAL)
                     .count());
         }
-        
+
         if (param.equalsIgnoreCase("lavastatus")) {
-            return String.valueOf(ElSueloEsLavaGame.level);
+            return String.valueOf(ElSueloEsLava.level);
         }
 
         if (param.equalsIgnoreCase("points")) {
-            return ReyDeLaColinaGame.getPlayerTop(offlinePlayer.getPlayer());
+            return ReyDeLaColina.getPlayerTop(offlinePlayer.getPlayer());
         }
 
         if (param.contains("top_")) {
@@ -65,8 +67,20 @@ public class CoreParse extends PlaceholderExpansion {
             return getTop(lastCharacter);
         }
 
-        if (param.equalsIgnoreCase("color")){
+        if (param.equalsIgnoreCase("color")) {
             return eventPlayer.color();
+        }
+
+        if (param.equalsIgnoreCase("endat")) {
+            return Core.endAt;
+        }
+
+        if (param.equalsIgnoreCase("bossbartime")) {
+            return formatTime(TimerService.bossbarTime);
+        }
+
+        if (param.equalsIgnoreCase("actionbartime")) {
+            return formatTime(TimerService.actionbarTime);
         }
 
         return param;

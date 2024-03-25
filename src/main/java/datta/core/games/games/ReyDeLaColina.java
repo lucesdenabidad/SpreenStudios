@@ -38,10 +38,16 @@ import static datta.core.content.builders.ColorBuilder.stringToLocation;
 
 @CommandPermission("spreenstudios.games")
 @CommandAlias("games")
-public class ReyDeLaColinaGame extends Game {
+public class ReyDeLaColina extends Game {
     ItemStack itemStack = new ItemBuilder(Material.STICK, "&ePalo")
             .addEnchant(Enchantment.KNOCKBACK, 2)
             .build();
+
+    @Override
+    public int endAt() {
+        return 0;
+    }
+
 
     @Override
     public String name() {
@@ -99,7 +105,7 @@ public class ReyDeLaColinaGame extends Game {
         if (task != null) task.cancel();
 
         TimerService.removeActionbar();
-        TimerService.removeActionbar();
+        TimerService.removeBossBar();
 
         for (Player t : Bukkit.getOnlinePlayers()) {
             t.getInventory().clear();
@@ -121,6 +127,7 @@ public class ReyDeLaColinaGame extends Game {
                 "&7 &c• %core_top_5%",
                 "",
                 "&f Puntos: &e%core_points%",
+                "&f Tiempo: &e%core_bossbartime%",
                 ""
         ));
     }
@@ -192,6 +199,10 @@ public class ReyDeLaColinaGame extends Game {
     public void addPoints(Player player, int points) {
         Integer i = pointsMap.getOrDefault(player, 0);
         int newPoints = i + points;
+
+        for (Player t : Bukkit.getOnlinePlayers())
+            SenderUtil.sendActionbar(t, "&a(+) "+player.getName()+" &festa sumando puntos: &e" + newPoints);
+
 
         pointsMap.put(player, newPoints);
     }

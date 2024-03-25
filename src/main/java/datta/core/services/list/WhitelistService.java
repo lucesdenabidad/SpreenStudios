@@ -98,13 +98,18 @@ public class WhitelistService extends Service {
         SenderUtil.sendMessage(sender, "%core_prefix% &aSe han agregado todos los conectados a la lista de ingreso.");
     }
 
+    @Subcommand("addfromfile")
+    public void addFromFile(CommandSender sender) {
+        addFromAddAll();
+        SenderUtil.sendMessage(sender, "%core_prefix% &aSe han agregado todos nombres de la lista a la whitelist.");
+    }
+
     @CommandCompletion("@whitelist_players")
     @Subcommand("remove")
     public void removeWhitelist(CommandSender sender, String target) {
         removeFromWhitelist(target);
         SenderUtil.sendMessage(sender, "%core_prefix% &cSe ha eliminado a " + target + " a la lista de ingreso.");
     }
-
 
     @Subcommand("clear")
     public void clearWhitelist(CommandSender sender) {
@@ -176,6 +181,13 @@ public class WhitelistService extends Service {
         configuration.safeSave();
 
         refreshList();
+    }
+
+    public void addFromAddAll() {
+        List<String> stringList = configuration.getStringList("whitelist.addall", new ArrayList<>());
+        for (String s : stringList) {
+            addToWhitelist(s);
+        }
     }
 
 

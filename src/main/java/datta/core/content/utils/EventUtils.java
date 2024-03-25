@@ -59,7 +59,7 @@ public class EventUtils {
                 .colors(Color.RED, Color.WHITE)
                 .power(1);
 
-        fireworkBuilder.spawnAndDetonate(player.getLocation().clone().add(0,1,0));
+        fireworkBuilder.spawnAndDetonate(player.getLocation().clone().add(0, 1, 0));
 
 
         if (kick) {
@@ -69,7 +69,7 @@ public class EventUtils {
         }
 
         for (Player t : Bukkit.getOnlinePlayers()) {
-            SenderUtil.sendActionbar(t, "&c(☠) " + player.getName() + "&f fue eliminado &7(%core_alive%/%server_max_players%)");
+            SenderUtil.sendActionbar(t, "&c(☠) " + player.getName() + "&f fue eliminado &7(%core_alive%/%core_endat%)");
         }
     }
 
@@ -148,12 +148,12 @@ public class EventUtils {
                         public void run() {
                             if (chicken.isDead()) {
                                 Particle.DustOptions dustOptions = new Particle.DustOptions(Color.RED, 1.0F);
-                                chicken.getWorld().spawnParticle(Particle.REDSTONE, chicken.getLocation(), 50, 0.25F, 0.25F, 0.25F, dustOptions);
+                                chicken.getWorld().spawnParticle(Particle.REDSTONE, chicken.getLocation(), 10, 0.25F, 0.25F, 0.25F, dustOptions);
                                 chicken.getLocation().getWorld().playSound(chicken.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1.0F, 1.0F);
                                 cancel();
                             } else {
                                 Particle.DustOptions dustOptions = new Particle.DustOptions(Color.RED, 1.0F);
-                                chicken.getWorld().spawnParticle(Particle.REDSTONE, chicken.getLocation(), 50, 0.25F, 0.25F, 0.25F, dustOptions);
+                                chicken.getWorld().spawnParticle(Particle.REDSTONE, chicken.getLocation(), 10, 0.25F, 0.25F, 0.25F, dustOptions);
                             }
                         }
                     }.runTaskTimer(Core.getInstance(), 0L, 0L);

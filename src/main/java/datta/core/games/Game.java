@@ -25,19 +25,13 @@ import static datta.core.content.utils.EventUtils.isStaff;
 
 public abstract class Game extends BaseCommand implements Listener {
 
+    public abstract int endAt();
     public abstract String name();
-
     public abstract Location spawn();
-
-
     public abstract void start();
-
     public abstract void end();
-
     public abstract List<String> scoreboard();
-
     public abstract List<MenuBuilder.MenuItem> menuItems(Player player);
-
     public abstract Material menuItem();
 
 
@@ -96,6 +90,8 @@ public abstract class Game extends BaseCommand implements Listener {
             }
         }
 
+
+        Core.setEndAt(this.endAt());
         registerGameEvents(this);
         loadScoreboard();
         run.run();
@@ -133,10 +129,11 @@ public abstract class Game extends BaseCommand implements Listener {
             t.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
         }
 
+        Core.setEndAt(0);
         unregisterGameEvents(this);
         runnable.run();
-
     }
+
     private void registerGameEvents(Game game) {
         Core.getInstance().getServer().getPluginManager().registerEvents(game, Core.getInstance());
     }

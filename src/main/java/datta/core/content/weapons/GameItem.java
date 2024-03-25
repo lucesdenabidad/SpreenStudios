@@ -3,10 +3,12 @@ package datta.core.content.weapons;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Default;
+import co.aikar.commands.bukkit.contexts.OnlinePlayer;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.menus.GameMenu;
 import datta.core.utils.SenderUtil;
 import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
@@ -35,6 +37,14 @@ public class GameItem extends Weapon {
     public void getItem(Player player) {
         player.getInventory().addItem(item());
         SenderUtil.sendMessage(player, "%core_prefix% &aObtuviste la herramienta de evento en tu inventario.");
+    }
+
+    @Default
+    public void getItem(CommandSender sender, OnlinePlayer onlinePlayer) {
+        Player player = onlinePlayer.getPlayer();
+        player.getInventory().addItem(item());
+
+        SenderUtil.sendMessage(sender, "%core_prefix% &aLe has dado el " + name() + " a " + player.getName());
     }
 
     @Override

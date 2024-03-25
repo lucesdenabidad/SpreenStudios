@@ -13,6 +13,6 @@ public class EliminateCMD extends BaseCommand {
     @CommandPermission("spreenstudios.eliminate")
     @CommandAlias("eliminate|removeplayer")
     public void eliminate(Player player, OnlinePlayer onlinePlayer, boolean kick) {
-        EventUtils.eliminate(onlinePlayer.getPlayer(), true);
+        EventUtils.eliminate(onlinePlayer.getPlayer(), kick);
     }
 }

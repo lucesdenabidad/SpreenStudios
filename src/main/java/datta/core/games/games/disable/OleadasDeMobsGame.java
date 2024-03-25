@@ -1,4 +1,4 @@
-package datta.core.games.games;
+package datta.core.games.games.disable;
 
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
@@ -8,6 +8,7 @@ import datta.core.commands.CallCMD;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
 import datta.core.games.Game;
+import datta.core.services.list.LightService;
 import datta.core.services.list.ToggleService;
 import datta.core.utils.SenderUtil;
 import org.bukkit.*;
@@ -39,14 +40,21 @@ import static datta.core.content.utils.EventUtils.*;
 public class OleadasDeMobsGame extends Game {
 
     @Override
+    public int endAt() {
+        return 60;
+    }
+
+    @Override
     public String name() {
         return "Ordas";
     }
 
     @Override
     public Location spawn() {
-        return stringToLocation("552 3 449");
+        return stringToLocation("1 100 134");
     }
+
+    int taskid;
 
     @Override
     public void start() {
@@ -64,16 +72,37 @@ public class OleadasDeMobsGame extends Game {
             CallCMD.callToggleable(ToggleService.Toggleable.TELEPORT_SPAWN_ON_JOIN, true);
 
 
-            for (Player t : Bukkit.getOnlinePlayers()) {
-                loadLoot(t);
+            LightService lightService = (LightService) Core.getInstance().commandService.serviceFromName("light");
+            lightService.setStatus(false);
 
-                SenderUtil.sendActionbar(t, "&a¡Fuiste equipado!");
-                SenderUtil.sendSound(t, Sound.ITEM_ARMOR_EQUIP_CHAIN, 1, 1);
-                SenderUtil.sendSound(t, Sound.AMBIENT_NETHER_WASTES_MOOD, 1, 1);
-            }
+            taskid = Bukkit.getScheduler().scheduleSyncRepeatingTask(Core.getInstance(), new Runnable() {
+                int secondsPassed = 0;
 
-            genMobs(10, EntityType.ZOMBIE);
-            task();
+                @Override
+                public void run() {
+                    if (secondsPassed < 5) {
+
+                        for (Player onlinePlayer : Bukkit.getOnlinePlayers())
+                            onlinePlayer.sendTitle(ChatColor.BLACK + "㐀", "", 0, 50, 0);
+
+                        secondsPassed++;
+                    } else {
+                        Bukkit.getScheduler().cancelTask(taskid);
+
+                        for (Player t : Bukkit.getOnlinePlayers()) {
+                            t.sendTitle(ChatColor.BLACK + " ", "", 0, 1, 0);
+                            loadLoot(t);
+
+                            SenderUtil.sendActionbar(t, "&a¡Fuiste equipado!");
+                            SenderUtil.sendSound(t, Sound.ITEM_ARMOR_EQUIP_CHAIN, 1, 1);
+                            SenderUtil.sendSound(t, Sound.AMBIENT_NETHER_WASTES_MOOD, 1, 1);
+                        }
+
+                        genMobs(40, EntityType.ZOMBIE);
+                        task();
+                    }
+                }
+            }, 0L, 20L);
         });
     }
 
@@ -82,6 +111,14 @@ public class OleadasDeMobsGame extends Game {
         end(() -> {
             if (task != null) {
                 task.cancel();
+            }
+
+            for (Player t : Bukkit.getOnlinePlayers()) {
+                PlayerInventory inventory = t.getInventory();
+                ItemStack helmet = inventory.getHelmet();
+                if (helmet != null && helmet.getType() == Material.CARVED_PUMPKIN){
+                    inventory.setHelmet(new ItemStack(Material.AIR));
+                }
             }
 
             removemobs();
@@ -153,17 +190,20 @@ public class OleadasDeMobsGame extends Game {
     public void genMobs(int count, EntityType type) {
 
         List<Location> locations = new ArrayList<>(List.of(
-                stringToLocation("518 3 449"),
-                stringToLocation("587 3 449"),
-                stringToLocation("520 3 529"),
-                stringToLocation("551 3 359"),
-                stringToLocation("585 3 368"),
-                stringToLocation("520 3 369"),
-                stringToLocation("520 3 529"),
-                stringToLocation("584 3 529"),
-                stringToLocation("552 3 498"),
-                stringToLocation("552 3 400"),
-                stringToLocation("552 3 449")
+                stringToLocation("33 100 214"),
+                stringToLocation("-31 100 214"),
+                stringToLocation("1 100 189"),
+                stringToLocation("-31 100 134"),
+                stringToLocation("33 100 134"),
+                stringToLocation("1 100 134"),
+                stringToLocation("1 100 80"),
+                stringToLocation("-30 100 55"),
+                stringToLocation("33 100 54"),
+                stringToLocation("22 100 103"),
+                stringToLocation("-18 100 108"),
+                stringToLocation("-16 100 162"),
+                stringToLocation("18 100 160"),
+                stringToLocation("1 100 157")
         ));
 
 

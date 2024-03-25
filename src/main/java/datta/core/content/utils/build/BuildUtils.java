@@ -6,7 +6,6 @@ import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.function.mask.BlockMask;
-import com.sk89q.worldedit.function.mask.ExistingBlockMask;
 import com.sk89q.worldedit.function.mask.Mask;
 import com.sk89q.worldedit.function.pattern.Pattern;
 import com.sk89q.worldedit.math.BlockVector3;
@@ -28,9 +27,24 @@ public class BuildUtils {
             Location max = cuboid.getPoint2();
 
             try (EditSession editSession = WorldEdit.getInstance().newEditSession(FaweAPI.getWorld(min.getWorld().getName()));) {
-                Region region = new CuboidRegion(BlockVector3.at(min.getX(), min.getY() + 1, min.getZ()), BlockVector3.at(max.getX(), max.getY(), max.getZ()));
+                Region region = new CuboidRegion(BlockVector3.at(min.getX(), min.getY(), min.getZ()), BlockVector3.at(max.getX(), max.getY(), max.getZ()));
                 Pattern pattern = new BaseBlock(BukkitAdapter.adapt(material.createBlockData()));
-                Mask mask = new ExistingBlockMask(editSession.getExtent());
+                editSession.setBlocks(region, pattern);
+            } catch (Exception e) {
+
+            }
+        });
+    }
+
+    public static void replace(Cuboid cuboid, Material replaceMaterial, Material newMaterial) {
+        BukkitTaskManager.taskManager().async(() -> {
+            Location min = cuboid.getPoint1();
+            Location max = cuboid.getPoint2();
+
+            try (EditSession editSession = WorldEdit.getInstance().newEditSession(FaweAPI.getWorld(min.getWorld().getName()));) {
+                Region region = new CuboidRegion(BlockVector3.at(min.getX(), min.getY(), min.getZ()), BlockVector3.at(max.getX(), max.getY(), max.getZ()));
+                Pattern pattern = new BaseBlock(BukkitAdapter.adapt(newMaterial.createBlockData()));
+                Mask mask = new BlockMask(editSession.getExtent(), new BaseBlock(BukkitAdapter.adapt(replaceMaterial.createBlockData())));
                 editSession.replaceBlocks(region, mask, pattern);
             } catch (Exception e) {
 
@@ -44,24 +58,5 @@ public class BuildUtils {
             wall.setType(material);
         }
     }
-
-
-    // ejemplo en cmd //replace AIR STONE
-    // replaceMaterial: AIR
-    // newMaterial: STONE
-    public static void replace(Cuboid cuboid, Material replaceMaterial, Material newMaterial) {
-        BukkitTaskManager.taskManager().async(() -> {
-            Location min = cuboid.getPoint1();
-            Location max = cuboid.getPoint2();
-
-            try (EditSession editSession = WorldEdit.getInstance().newEditSession(FaweAPI.getWorld(min.getWorld().getName()));) {
-                Region region = new CuboidRegion(BlockVector3.at(min.getX(), min.getY() + 1, min.getZ()), BlockVector3.at(max.getX(), max.getY(), max.getZ()));
-                Pattern pattern = new BaseBlock(BukkitAdapter.adapt(newMaterial.createBlockData()));
-                Mask mask = new BlockMask(editSession.getExtent(), new BaseBlock(BukkitAdapter.adapt(replaceMaterial.createBlockData())));
-                editSession.replaceBlocks(region, mask, pattern);
-            } catch (Exception e) {
-
-            }
-        });
-    }
 }
+

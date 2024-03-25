@@ -25,31 +25,30 @@ public class InfoCMD extends BaseCommand {
     }
 
 
-    @Subcommand("toggle")
-    public static void toggle(Player player) {
-        if (Core.disableLog.contains(player)) {
+    public static void set(Player player, boolean enabled) {
+        if (enabled) {
             Core.disableLog.remove(player);
         } else {
             Core.disableLog.add(player);
         }
+    }
 
-        String actual = formatBoolean(!Core.disableLog.contains(player), "Deshabilitado", "Activado");
+    @Subcommand("toggle")
+    public static void toggle(Player player) {
+        boolean currentlyDisabled = Core.disableLog.contains(player);
+        set(player, !currentlyDisabled);
+        String actual = formatBoolean(!currentlyDisabled, "Deshabilitado", "Activado");
         SenderUtil.sendMessage(player, "%core_prefix% &eSe ha alternado el buzón de información de administración para ti. Ahora está " + actual + ".");
     }
 
     @Subcommand("toggle")
     public static void toggle(CommandSender sender, OnlinePlayer onlinePlayer) {
         Player player = onlinePlayer.getPlayer();
+        boolean currentlyDisabled = Core.disableLog.contains(player);
+        set(player, !currentlyDisabled);
+        String actual = formatBoolean(!currentlyDisabled, "Deshabilitado", "Activado");
 
-        if (Core.disableLog.contains(player)) {
-            Core.disableLog.remove(player);
-        } else {
-            Core.disableLog.add(player);
-        }
-
-        String actual = formatBoolean(!Core.disableLog.contains(player), "Deshabilitado", "Activado");
-
-        SenderUtil.sendMessage(player, "%core_prefix% &e"+sender.getName()+" te ha alternado el registro de operador, Ahora el estado está en " + actual + ".");
+        SenderUtil.sendMessage(player, "%core_prefix% &e" + sender.getName() + " te ha alternado el registro de operador, Ahora el estado está en " + actual + ".");
         SenderUtil.sendMessage(sender, "%core_prefix% &eSe ha alternado el buzón de información de administración para " + player.getName() + ". Ahora está " + actual + ".");
     }
 }
