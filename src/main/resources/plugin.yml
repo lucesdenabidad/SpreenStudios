@@ -5,6 +5,9 @@ api-version: '1.19'
 authors: [datta]
 softdepend:
   - voicechat
+permissions:
+  spreenstudios.voicechat:
+    description: Allows to broadcast your voice
 commands:
  info:
    permission: 'spreenstudios.info'
