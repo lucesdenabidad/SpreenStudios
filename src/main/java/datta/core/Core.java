@@ -7,6 +7,7 @@ import datta.core.content.builders.MenuBuilder;
 import datta.core.content.configuration.Configuration;
 import datta.core.content.configuration.ConfigurationManager;
 import datta.core.content.portals.PortalManager;
+import datta.core.hooks.voicechat.VoiceChatHook;
 import datta.core.weapons.GameItem;
 import datta.core.weapons.Stick;
 import datta.core.weapons.Weapon;
@@ -52,6 +53,7 @@ public class Core extends JavaPlugin {
     public GameManager gameManager;
     public static List<Player> disableLog = new ArrayList<>();
     public PortalManager portalManager;
+    public VoiceChatHook voiceChatHook;
 
     public String defaultTitle = "&5&lEventos";
     public List<String> defaultLines = new ArrayList<>();
@@ -122,6 +124,10 @@ public class Core extends JavaPlugin {
 
         coreParse.register();
         stopGames();
+
+        // enable all hooks
+        if(Bukkit.getPluginManager().isPluginEnabled("voicechat"))
+            voiceChatHook = new VoiceChatHook(this).enable();
     }
 
     @Override
@@ -133,6 +139,10 @@ public class Core extends JavaPlugin {
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             onlinePlayer.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
         }
+
+        // disable all hooks
+        if(voiceChatHook != null)
+            voiceChatHook.disable();
     }
 
     public static void info(String... s) {

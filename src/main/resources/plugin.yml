@@ -3,6 +3,8 @@ version: '${project.version}'
 main: datta.core.Core
 api-version: '1.19'
 authors: [datta]
+softdepend:
+  - voicechat
 commands:
  info:
    permission: 'spreenstudios.info'
