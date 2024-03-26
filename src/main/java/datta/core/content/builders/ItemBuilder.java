@@ -94,7 +94,7 @@ public class ItemBuilder {
         ItemStack itemStack = new ItemStack(material);
 
         if (headUrl != null) {
-            itemStack = SkullBuilder.itemFromUrl(headUrl);
+            itemStack = SkullCreator.itemFromUrl(headUrl);
         }
 
         ItemMeta itemMeta = itemStack.getItemMeta();

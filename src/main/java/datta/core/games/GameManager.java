@@ -13,16 +13,16 @@ public class GameManager {
 
     private final Core instance;
 
-    private final ElSueloEsLava elSueloEsLava;
     private final Escondite escondite;
+    private final ElSueloEsLava elSueloEsLava;
     private final Puertas puertas;
     private final ReyDeLaColina reyDeLaColina;
     private final SillasMusicales sillitasGame;
 
     public GameManager(Core instance) {
         this.instance = instance;
-        games.add(elSueloEsLava = new ElSueloEsLava());
         games.add(escondite = new Escondite());
+        games.add(elSueloEsLava = new ElSueloEsLava());
         games.add(puertas = new Puertas());
         games.add(reyDeLaColina = new ReyDeLaColina());
         games.add(sillitasGame = new SillasMusicales());

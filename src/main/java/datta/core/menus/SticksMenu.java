@@ -1,10 +1,10 @@
 package datta.core.menus;
 
 import datta.core.content.builders.ItemBuilder;
-import datta.core.content.weapons.Stick;
-import datta.core.content.weapons.sticks.KickStick;
-import datta.core.content.weapons.sticks.KillStick;
-import datta.core.content.weapons.sticks.PunchStick;
+import datta.core.weapons.Stick;
+import datta.core.weapons.sticks.KickStick;
+import datta.core.weapons.sticks.KillStick;
+import datta.core.weapons.sticks.PunchStick;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 

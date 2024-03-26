@@ -1,4 +1,4 @@
-package datta.core.content.weapons;
+package datta.core.weapons;
 
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;

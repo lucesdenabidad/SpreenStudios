@@ -7,12 +7,13 @@ import datta.core.content.builders.MenuBuilder;
 import datta.core.content.configuration.Configuration;
 import datta.core.content.configuration.ConfigurationManager;
 import datta.core.content.portals.PortalManager;
-import datta.core.content.weapons.GameItem;
-import datta.core.content.weapons.Stick;
-import datta.core.content.weapons.Weapon;
-import datta.core.content.weapons.sticks.KickStick;
-import datta.core.content.weapons.sticks.KillStick;
-import datta.core.content.weapons.sticks.PunchStick;
+import datta.core.weapons.GameItem;
+import datta.core.weapons.Stick;
+import datta.core.weapons.Weapon;
+import datta.core.weapons.sticks.ColorStick;
+import datta.core.weapons.sticks.KickStick;
+import datta.core.weapons.sticks.KillStick;
+import datta.core.weapons.sticks.PunchStick;
 import datta.core.events.*;
 import datta.core.games.Game;
 import datta.core.games.GameManager;
@@ -23,6 +24,7 @@ import datta.core.services.individual.FreezeList;
 import datta.core.services.individual.Glow;
 import datta.core.services.list.ToggleService;
 import datta.core.utils.SenderUtil;
+import datta.events.simondice.SimonDice;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -98,8 +100,9 @@ public class Core extends JavaPlugin {
         Stick.registerStick(new PunchStick());
         Stick.registerStick(new KickStick());
         Stick.registerStick(new KillStick());
-        Weapon.register(
-                new GameItem());
+        Stick.registerStick(new ColorStick());
+
+        Weapon.register(new GameItem());
 
         listener(new PlayerQuitListener());
         listener(new PlayerDeathListener());
@@ -107,10 +110,15 @@ public class Core extends JavaPlugin {
         listener(new PlayerChangeGamemodeListener());
         listener(new FreezeList());
         listener(new EntityDamagebyEntityListener());
+
         Glow glow = new Glow();
 
         commandManager.getLocales().addMessageBundle("core", Locales.SPANISH);
         commandManager.getLocales().setDefaultLocale(Locales.SPANISH);
+
+        // # Simon Dice
+        commandManager.registerCommand(new SimonDice());
+        listener(new SimonDice());
 
         coreParse.register();
         stopGames();

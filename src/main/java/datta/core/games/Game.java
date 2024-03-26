@@ -4,6 +4,9 @@ import co.aikar.commands.BaseCommand;
 import datta.core.Core;
 import datta.core.content.CoreTask;
 import datta.core.content.builders.MenuBuilder;
+import datta.core.content.utils.EventUtils;
+import datta.core.services.individual.FreezeList;
+import datta.core.services.individual.Glow;
 import datta.core.services.list.ScoreboardService;
 import datta.core.services.list.ScreenColorService;
 import datta.core.services.list.TimerService;
@@ -100,6 +103,11 @@ public abstract class Game extends BaseCommand implements Listener {
     public void end(Runnable runnable) {
         ToggleService.Toggleable.PVP.set(false, true);
         ToggleService.Toggleable.KICK_ON_DEATH.set(false, true);
+
+        Glow.inGlow.clear();
+        FreezeList.freezeList.clear();
+        EventUtils.clearCOLORS();
+
 
         for (World world : Bukkit.getWorlds()) {
             for (Entity entity : world.getEntities()) {

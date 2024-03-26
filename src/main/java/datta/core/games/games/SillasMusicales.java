@@ -3,17 +3,21 @@ package datta.core.games.games;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
+import datta.core.Core;
+import datta.core.content.CoreTask;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
 import datta.core.content.utils.EventUtils;
+import datta.core.content.utils.build.BuildUtils;
 import datta.core.content.utils.build.consts.Cuboid;
 import datta.core.games.Game;
+import datta.core.services.list.CinemaService;
 import datta.core.services.list.SitService;
+import datta.core.utils.SenderUtil;
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -22,6 +26,7 @@ import org.bukkit.inventory.PlayerInventory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static datta.core.content.builders.ColorBuilder.stringToLocation;
 import static datta.core.content.utils.EventUtils.isStaff;
@@ -50,7 +55,7 @@ public class SillasMusicales extends Game {
     public void start() {
         game(() -> {
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-                if (isStaff(onlinePlayer)){
+                if (isStaff(onlinePlayer)) {
                     getItems(onlinePlayer);
                 }
             }
@@ -193,21 +198,63 @@ public class SillasMusicales extends Game {
         defaultStatus = isPlayingSound;
     }
 
-    public void changeBlockDirection(Block block, BlockFace newFace) {
-        // Verificar si el bloque es una GRINDSTONE
-        if (block.getType() == Material.GRINDSTONE) {
-            // Obtener el estado del bloque
-            BlockData blockData = block.getBlockData();
-            if (blockData instanceof Directional) {
-                // Cambiar la orientación del bloque
-                Directional directional = (Directional) blockData;
-                directional.setFacing(newFace);
-                // Guardar el nuevo estado del bloque
-                block.setBlockData(directional);
-            } else {
-            }
-        } else {
+
+    @Subcommand("sillas test")
+    public void test(Player player) {
+        forAllPlayers();
+    }
+    @Subcommand("sillas paste")
+    public void paste(Player player) {
+        BuildUtils.schematic(stringToLocation("1 99 134"), "sillitas.schem");
+    }
+    @Subcommand("sillas clean")
+    public void clean(Player player) {
+        BuildUtils.schematic(stringToLocation("1 99 134"), "sillitas.schem");
+    }
+
+
+    public void forAllPlayers() {
+
+        List<Player> filteredPlayers = Bukkit.getOnlinePlayers().stream()
+                .filter(onlinePlayer -> !onlinePlayer.isOp())
+                .collect(Collectors.toList());
+
+        int delay = 0;
+        for (Player onlinePlayer : filteredPlayers) {
+            CoreTask.runTask(() -> {
+                for (Player target : Bukkit.getOnlinePlayers()) {
+                    playCinema(target, onlinePlayer.getName());
+                }
+            }, delay);
+
+            delay += 120;
         }
+    }
+
+    public void playCinema(Player play, String name) {
+        String black = ChatColor.BLACK + "㐀";
+        Block block = stringToLocation("1 102 134").getBlock();
+        block.setType(Material.AIR);
+
+        play.sendTitle(black, "", 0, 20, 20);
+
+        CinemaService cinemaService = (CinemaService) Core.getInstance().commandService.serviceFromName("cinema");
+        cinemaService.playCinema(play, cinemaService.getCinema("sillitas-present"));
+
+        NPC npc = CitizensAPI.getNPCRegistry().getById(5);
+        npc.setName(name);
+
+        CoreTask.runTask(() -> {
+            SenderUtil.sendSound(play, "qsm:light", 1, 1);
+            block.setType(Material.LIGHT);
+
+            CoreTask.runTask(() -> {
+                play.sendTitle(black, "", 20, 50, 0);
+                SenderUtil.sendSound(play, "qsm:light", 1, 1);
+                block.setType(Material.AIR);
+            }, 40L);
+
+        }, 50L);
     }
 
 }

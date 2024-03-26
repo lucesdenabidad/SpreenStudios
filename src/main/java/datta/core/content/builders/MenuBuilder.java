@@ -43,6 +43,7 @@ public class MenuBuilder implements Listener {
             }
         }
 
+        player.playSound(player.getLocation(),Sound.BLOCK_NOTE_BLOCK_BIT,1,2);
         player.openInventory(menu.getInventory());
         openMenus.put(player, menu);
     }
@@ -174,7 +175,6 @@ public class MenuBuilder implements Listener {
             if (currentTime - this.lastExecutionTime >= COOLDOWN) {
                 if (slot >= 0 && slot < items.length && items[slot] != null) {
                     items[slot].executeAction(player);
-                    player.playSound(player.getLocation(), Sound.BLOCK_COMPARATOR_CLICK, 1, 1);
                     this.lastExecutionTime = currentTime;
                 }
             }
@@ -199,7 +199,7 @@ public class MenuBuilder implements Listener {
         }
 
         public void executeAction(Player player) {
-            player.playSound(player.getLocation(), Sound.BLOCK_COMPARATOR_CLICK, 1, 1);
+            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.5f, 2);
             this.action.run();
         }
     }

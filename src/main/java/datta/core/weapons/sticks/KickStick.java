@@ -1,4 +1,4 @@
-package datta.core.content.weapons.sticks;
+package datta.core.weapons.sticks;
 
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
@@ -6,7 +6,7 @@ import co.aikar.commands.annotation.Default;
 import co.aikar.commands.bukkit.contexts.OnlinePlayer;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.utils.EventUtils;
-import datta.core.content.weapons.Stick;
+import datta.core.weapons.Stick;
 import datta.core.utils.SenderUtil;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;

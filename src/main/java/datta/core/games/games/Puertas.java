@@ -4,12 +4,13 @@ import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
 import datta.core.commands.CallCMD;
-import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
 import datta.core.content.utils.EventUtils;
 import datta.core.content.utils.build.BuildUtils;
 import datta.core.content.utils.build.consts.Cuboid;
 import datta.core.games.Game;
+import datta.core.services.individual.FreezeList;
+import datta.core.services.individual.Glow;
 import datta.core.services.list.TimerService;
 import datta.core.services.list.ToggleService;
 import datta.core.utils.SenderUtil;
@@ -20,6 +21,7 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -30,8 +32,10 @@ import java.util.List;
 import java.util.Map;
 
 import static datta.core.content.builders.ColorBuilder.stringToLocation;
+import static datta.core.content.utils.EventUtils.fix;
 import static datta.core.content.utils.build.BuildUtils.replace;
 import static datta.core.content.utils.build.BuildUtils.set;
+import static org.bukkit.Material.*;
 
 
 @CommandPermission("spreenstudios.games")
@@ -54,7 +58,6 @@ public class Puertas extends Game {
         return stringToLocation("1 101 291 -180 0");
     }
 
-
     @Override
     public void start() {
         game(() -> {
@@ -71,6 +74,7 @@ public class Puertas extends Game {
             CallCMD.callToggleable(ToggleService.Toggleable.INTERACTIONS, true);
             CallCMD.callToggleable(ToggleService.Toggleable.TELEPORT_SPAWN_ON_JOIN, true);
 
+            setPortals(BARRIER);
             openStairs();
 
             TimerService.bossBarTimer("{time}", BarColor.PURPLE, BarStyle.SOLID, tiempoParaElegirPortal, () -> {
@@ -79,12 +83,11 @@ public class Puertas extends Game {
         });
     }
 
-
     @Override
     public void end() {
         end(() -> {
             setParkourGlass(Material.RED_STAINED_GLASS);
-            setDoors(Material.BARRIER);
+            setPortals(Material.BARRIER);
             closeStairs(false);
         });
     }
@@ -97,37 +100,6 @@ public class Puertas extends Game {
     @Override
     public List<MenuBuilder.MenuItem> menuItems(Player player) {
         return new ArrayList<>(List.of(
-
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.PAPER, "&aAbrir portal cercano").build(), () -> {
-                    setNearestCuboid(player, Material.AIR);
-                }),
-
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.PAPER, "&cCerrar portal cercano").build(), () -> {
-                    setNearestCuboid(player, Material.BARRIER);
-                }),
-
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.PAPER, "&aAbrir cristales de parkour").build(), () -> {
-                    setParkourGlass(Material.AIR);
-                }),
-
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.PAPER, "&cCerrar cristales de parkour").build(), () -> {
-                    setParkourGlass(Material.RED_STAINED_GLASS);
-                }),
-
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.PAPER, "&aIniciar parkour").build(), this::startParkour),
-
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.PAPER, "&cTerminar parkour").build(), this::stopParkour),
-
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.PAPER, "&aTeletransportar jugadores cercanos a ti").build(), () -> {
-
-                    Location location = player.getLocation();
-                    int radius = 30;
-                    for (Player p : Bukkit.getOnlinePlayers()) {
-                        if (p.getLocation().distanceSquared(location) <= radius * radius) {
-                            p.teleport(location);
-                        }
-                    }
-                })
         ));
     }
 
@@ -138,42 +110,48 @@ public class Puertas extends Game {
     }
 
     // # Constantes
-    private static final Cuboid PARKOUR_1 = new Cuboid("11 109 266 20 116 275");
-    private static final Cuboid PARKOUR_2 = new Cuboid("20 116 287 11 109 281");
-    private static final Cuboid PARKOUR_3 = new Cuboid("-9 109 274 -18 115 266");
-    private static final Cuboid PARKOUR_4 = new Cuboid("-18 109 280 -10 115 287");
-    private final Map<Player, String> PARKOUR_PLAYER_STORAGE = new HashMap<>();
-    private final Cuboid[] parkours = {PARKOUR_1, PARKOUR_2, PARKOUR_3, PARKOUR_4};
-    private final String[] parkourNames = {"parkour-1", "parkour-2", "parkour-3", "parkour-4"};
 
-    int tiempoParaElegirPortal = 120; // 2 minutos
-    int tiempoParaIniciarParkour = 5;
-    int tiempoDeParkour = 300;
+    private static final Parkour PARKOUR_1 = new Parkour(
+            "1",
+            "puertabuena",
+            "&aPuerta buena",
+            new Cuboid("-253 11 -306 -248 14 -306"),
+            new Cuboid("18 108 267 12 108 273"),
+            new Cuboid("-254 56 -441 -249 51 -449"),
+            new Cuboid("11 116 266 20 108 274"),
+
+            new ArrayList<>());
+
+    private static final Parkour PARKOUR_2 = new Parkour(
+            "2",
+            "puertamala",
+            "&cPuerta mala",
+            new Cuboid("-285 30 -305 -281 27 -305"),
+            new Cuboid("-11 108 268 -15 108 272"),
+            new Cuboid("-286 31 -436 -277 26 -449"),
+            new Cuboid("-9 119 275 -18 108 266"),
+            new ArrayList<>());
 
 
-    Map<Player, Location> CheckPoints = new HashMap<>();
+    int tiempoParaElegirPortal = 120; // 2 minutos - Eligen portal
+    int tiempoParaIniciarParkour = 1; // 5 segundos - antes de elegir portal
+    int tiempoDeParkour = 300; // 5 Minutos - Duracion antes de morir
+
+    Map<Player, Location> CHECKPOINTS = new HashMap<>();
 
     // # Metodos
-
     public void openStairs() {
-        Cuboid izq = new Cuboid("-15 108 288 -10 108 267");
-        Cuboid der = new Cuboid("19 108 265 11 108 290");
-
-        replace(izq, Material.BARRIER, Material.AIR);
-        replace(der, Material.BARRIER, Material.AIR);
+        replace(PARKOUR_1.stairsSector, Material.BARRIER, AIR);
+        replace(PARKOUR_2.stairsSector, Material.BARRIER, AIR);
 
         for (Player t : Bukkit.getOnlinePlayers())
             SenderUtil.sendActionbar(t, "&a¡Ya puedes elegir un portal!", Sound.ENTITY_ITEM_PICKUP);
 
         setParkourGlass(Material.RED_STAINED_GLASS);
     }
-
     public void closeStairs(boolean msg) {
-        Cuboid izq = new Cuboid("-15 108 288 -10 108 267");
-        Cuboid der = new Cuboid("19 108 265 11 108 290");
-
-        replace(izq, Material.AIR, Material.BARRIER);
-        replace(der, Material.AIR, Material.BARRIER);
+        replace(PARKOUR_1.stairsSector, AIR, Material.BARRIER);
+        replace(PARKOUR_2.stairsSector, AIR, Material.BARRIER);
 
         if (msg) {
             for (Player t : Bukkit.getOnlinePlayers())
@@ -183,44 +161,24 @@ public class Puertas extends Game {
         setParkourGlass(Material.RED_STAINED_GLASS);
     }
 
-    private void enter(Player player, String parkourName) {
+    private void enter(Player player, Parkour parkour) {
+        if (parkour.members.contains(player)) return;
 
-        if (PARKOUR_PLAYER_STORAGE.get(player) != null && PARKOUR_PLAYER_STORAGE.get(player).equalsIgnoreCase(parkourName)) {
-            return;
-        }
+        PARKOUR_1.removeMember(player);
+        PARKOUR_2.removeMember(player);
 
-
-        PARKOUR_PLAYER_STORAGE.put(player, parkourName);
+        parkour.addMember(player);
 
         if (!player.isOp()) {
-            SenderUtil.sendActionbar(player, "&a(!) Has elegido un portal con éxito.", Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
+            SenderUtil.sendActionbar(player, "&a(!) Has elegido un portal con éxito.", Sound.BLOCK_NOTE_BLOCK_BIT);
         }
     }
-
-    public List<Player> getPlayersParkour(int parkour) {
-        String parkourName = "parkour-" + parkour;
-        List<Player> list = new ArrayList<>();
-
-        for (Map.Entry<Player, String> entry : PARKOUR_PLAYER_STORAGE.entrySet()) {
-            if (entry.getValue().equals(parkourName)) {
-                list.add(entry.getKey());
-            }
-        }
-
-        return list;
-    }
-
-
-    private void setDoors(Material material) {
-        Cuboid portal1 = new Cuboid("19 114 269 19 109 271");
-        Cuboid portal2 = new Cuboid("19 114 283 19 109 285");
-        Cuboid portal3 = new Cuboid("-17 114 285 -17 109 283");
-        Cuboid portal4 = new Cuboid("-17 114 271 -17 109 269");
+    private void setPortals(Material material) {
+        Cuboid portal1 = new Cuboid("-17 114 271 -17 109 269");
+        Cuboid portal2 = new Cuboid("19 109 269 19 114 271");
 
         set(portal1, material);
         set(portal2, material);
-        set(portal3, material);
-        set(portal4, material);
     }
 
 
@@ -228,8 +186,6 @@ public class Puertas extends Game {
         Cuboid[] portals = {
                 new Cuboid("19 114 269 19 109 271"),
                 new Cuboid("19 114 283 19 109 285"),
-                new Cuboid("-17 114 285 -17 109 283"),
-                new Cuboid("-17 114 271 -17 109 269")
         };
 
         Location centerLocation = location.toCenterLocation();
@@ -249,14 +205,13 @@ public class Puertas extends Game {
         return nearestCuboid;
     }
 
-
     public void setNearestCuboid(Player player, Material material) {
         Location location = player.getLocation();
         Cuboid cuboid = nearestCuboid(location);
 
         set(cuboid, material);
 
-        if (material == Material.AIR) {
+        if (material == AIR) {
             SenderUtil.sendMessage(player, "%core_prefix% &aHas abierto el portal mas cercano a ti.");
         } else {
             SenderUtil.sendMessage(player, "%core_prefix% &cHas cerrado el portal mas cercano a ti.");
@@ -264,22 +219,17 @@ public class Puertas extends Game {
     }
 
     public void setParkourGlass(Material material) {
+        Cuboid glass_1 = PARKOUR_1.glassSector;
+        Cuboid glass_2 = PARKOUR_2.glassSector;
 
-        Cuboid[] cuboids = {
-                new Cuboid("370 20 495 374 24 495"),
-                new Cuboid("417 10 488 400 8 488"),
-                new Cuboid("442 8 494 431 6 494"),
-                new Cuboid("477 7 494 482 4 494")
-        };
-
-        for (Cuboid cuboid : cuboids) {
-            BuildUtils.set(cuboid, material);
-        }
+        BuildUtils.set(glass_1, material);
+        BuildUtils.set(glass_2, material);
     }
+
 
     public void startParkour() {
         TimerService.bossBarTimer("{time}", BarColor.PURPLE, BarStyle.SOLID, tiempoParaIniciarParkour, () -> {
-            setParkourGlass(Material.AIR);
+            setParkourGlass(AIR);
             for (Player t : Bukkit.getOnlinePlayers()) {
                 SenderUtil.sendActionbar(t, "&a(!) Tienes 5 minutos parra llegar a la meta!", Sound.ENTITY_ITEM_PICKUP);
             }
@@ -295,12 +245,14 @@ public class Puertas extends Game {
     }
 
     public void stopParkour() {
-        Cuboid cuboid = new Cuboid("500 65 499 355 -1 350");
+        Cuboid cuboid = new Cuboid("-230 72 -301 -300 6 -450");
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             if (!onlinePlayer.isOp()) {
                 if (cuboid.isIn(onlinePlayer)) {
-                    EventUtils.eliminate(onlinePlayer, true);
+                    EventUtils.addPlayerColor(onlinePlayer, "&c");
+                    Glow.glowPlayer(onlinePlayer,true);
+                    FreezeList.freezePlayer(onlinePlayer, true);
                 }
             }
         }
@@ -315,10 +267,10 @@ public class Puertas extends Game {
         player.teleport(stringToLocation("1 101 291"));
 
         for (Player t : Bukkit.getOnlinePlayers()) {
-            SenderUtil.sendActionbar(t, "&a(✔) " + player.getName() + " llego ala meta!", Sound.BLOCK_NOTE_BLOCK_BANJO);
+            SenderUtil.sendActionbar(t, "&a(✔) " + player.getName() + " llego a la meta!", Sound.BLOCK_NOTE_BLOCK_BANJO);
         }
 
-        CheckPoints.remove(player);
+        CHECKPOINTS.remove(player);
     }
 
     // # Eventos
@@ -327,11 +279,15 @@ public class Puertas extends Game {
     public void move(PlayerMoveEvent event) {
         Player player = event.getPlayer();
 
-        for (int i = 0; i < parkours.length; i++) {
-            if (parkours[i].isIn(player)) {
-                enter(player, parkourNames[i]);
-                break;
-            }
+        Cuboid PARKOUR_2_SECTOR = PARKOUR_2.stairsSector;
+        Cuboid PARKOUR_1_SECTOR = PARKOUR_1.stairsSector;
+
+        if (PARKOUR_2_SECTOR.isIn(player)) {
+            enter(player, PARKOUR_2);
+        }
+
+         if (PARKOUR_1_SECTOR.isIn(player)) {
+            enter(player, PARKOUR_1);
         }
     }
 
@@ -339,12 +295,15 @@ public class Puertas extends Game {
     @EventHandler
     public void moveOnWinParkour(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        Cuboid cuboid = new Cuboid("355 -1 350 500 65 366");
 
-        if (cuboid.isIn(player)) {
+        Cuboid winSector = PARKOUR_1.winSector;
+        Cuboid winSector1 = PARKOUR_2.winSector;
+
+        if (winSector1.isIn(player) || winSector.isIn(player)) {
             win(player);
         }
     }
+
 
     @EventHandler
     public void moveInParkours(PlayerMoveEvent event) {
@@ -356,16 +315,13 @@ public class Puertas extends Game {
 
 
             if (block.getType() == Material.STRUCTURE_VOID) {
-                CheckPoints.put(player, location);
-                SenderUtil.sendActionbar(player, "&a(✔) Tomaste un checkpoint con éxito!");
+                CHECKPOINTS.put(player, location);
             }
 
             if (block.getType() == Material.WATER) {
-                Location location1 = CheckPoints.get(player);
+                Location location1 = CHECKPOINTS.get(player);
                 if (location1 != null) {
                     player.teleport(location1);
-                    SenderUtil.sendActionbar(player, "&e(!) Volviste a tu checkpoint!", Sound.BLOCK_NOTE_BLOCK_BASS);
-
                 }
             }
 
@@ -376,12 +332,56 @@ public class Puertas extends Game {
     }
 
     // # Commands
-    @Subcommand("puertas tpplayersparkour")
-    public void tpParkourToMe(Player player, int parkour){
-        List<Player> playersParkour = getPlayersParkour(parkour);
 
-        for (Player target : playersParkour) {
-            target.teleport(player);
+    @Subcommand("puertas setportals")
+    public void openPortals(CommandSender sender, Material m){
+        setPortals(m);
+        SenderUtil.sendMessage(sender, "%core_prefix% &aLos portales fueron modificados a "+ fix(m.name())+".");
+    }
+
+    @Subcommand("puertas startparkour")
+    public void starparkour(CommandSender sender){
+        startParkour();
+        SenderUtil.sendMessage(sender, "%core_prefix% &aIniciando parkours.");
+    }
+    @Subcommand("puertas stopparkour")
+    public void stopparkour(CommandSender sender){
+        stopParkour();
+        SenderUtil.sendMessage(sender, "%core_prefix% &cFrenando juegos.");
+    }
+
+
+    public static class Parkour {
+
+        String id;
+        String name;
+        String displayName;
+
+        Cuboid glassSector;
+        Cuboid stairsSector;
+        Cuboid winSector;
+        Cuboid joinSector;
+
+        List<Player> members;
+
+        public Parkour(String id, String name, String displayName, Cuboid glass, Cuboid sector, Cuboid winSector, Cuboid joinSector, List<Player> members) {
+            this.id = id;
+            this.name = name;
+            this.displayName = displayName;
+            this.glassSector = glass;
+            this.stairsSector = sector;
+            this.winSector = winSector;
+            this.joinSector = joinSector;
+            this.members = members;
         }
+
+        public void addMember(Player player){
+            members.add(player);
+        }
+
+        public void removeMember(Player player){
+            members.remove(player);
+        }
+
     }
 }

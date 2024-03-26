@@ -305,7 +305,7 @@ public class ToggleService extends Service {
 
         public void set(boolean value, boolean silent) {
             if (!silent) {
-                Core.info("&9(Toggle) &b" + fix(name()) + " &ffue llamada al valor de &b" + fix(String.valueOf(value)) + "&f.");
+                Core.info(name() + " &ffue modificado a  &e" + fix(String.valueOf(value)) + "&f.");
             }
 
             this.status = value;

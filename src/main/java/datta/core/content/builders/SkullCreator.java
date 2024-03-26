@@ -18,8 +18,6 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -30,10 +28,9 @@ import java.util.UUID;
  *
  * @author deanveloper on 12/28/2016.
  */
-public class SkullBuilder {
+public class SkullCreator {
 
-	private SkullBuilder() {
-	}
+	private SkullCreator() {}
 
 	private static boolean warningPosted = false;
 
@@ -83,7 +80,8 @@ public class SkullBuilder {
 	 * @return The head of the Player.
 	 */
 	public static ItemStack itemFromUrl(String url) {
-		return itemWithUrl(createSkull(), url);
+        String urle = "http://textures.minecraft.net/texture/"+url;
+		return itemWithUrl(createSkull(), urle);
 	}
 
 	/**
@@ -144,7 +142,6 @@ public class SkullBuilder {
 	public static ItemStack itemWithUrl(ItemStack item, String url) {
 		notNull(item, "item");
 		notNull(url, "url");
-
 		return itemWithBase64(item, urlToBase64(url));
 	}
 
@@ -263,22 +260,17 @@ public class SkullBuilder {
 	}
 
 	private static GameProfile makeProfile(String b64) {
-		// Crear un UUID aleatorio basado en el string b64
-		UUID id = UUID.nameUUIDFromBytes(b64.getBytes());
+		// random uuid based on the b64 string
+		UUID id = new UUID(
+				b64.substring(b64.length() - 20).hashCode(),
+				b64.substring(b64.length() - 10).hashCode()
+		);
 
-		// Crear un GameProfile con el UUID generado
 		GameProfile profile = new GameProfile(id, "Player");
-
-		// Crear un nuevo mapa de propiedades
-		Map<String, Property> properties = new HashMap<>();
-
-		// Crear una nueva propiedad de texturas
-		Property property = new Property("textures", b64);
-
-		properties.put(property.getName(), property);
-
+		profile.getProperties().put("textures", new Property("textures", b64));
 		return profile;
 	}
+
 	private static void mutateBlockState(Skull block, String b64) {
 		try {
 			if (blockProfileField == null) {

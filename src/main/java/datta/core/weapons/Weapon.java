@@ -1,4 +1,4 @@
-package datta.core.content.weapons;
+package datta.core.weapons;
 
 import co.aikar.commands.BaseCommand;
 import datta.core.Core;

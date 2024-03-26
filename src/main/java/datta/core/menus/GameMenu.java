@@ -6,7 +6,7 @@ import co.aikar.commands.annotation.CommandPermission;
 import datta.core.Core;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
-import datta.core.content.weapons.GameItem;
+import datta.core.weapons.GameItem;
 import datta.core.games.Game;
 import datta.core.games.GameManager;
 import org.bukkit.Location;
