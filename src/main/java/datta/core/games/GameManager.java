@@ -22,8 +22,8 @@ public class GameManager {
     public GameManager(Core instance) {
         this.instance = instance;
         games.add(escondite = new Escondite());
-        games.add(elSueloEsLava = new ElSueloEsLava());
         games.add(puertas = new Puertas());
+        games.add(elSueloEsLava = new ElSueloEsLava());
         games.add(reyDeLaColina = new ReyDeLaColina());
         games.add(sillitasGame = new SillasMusicales());
 

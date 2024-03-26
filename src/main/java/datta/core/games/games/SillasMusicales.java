@@ -256,5 +256,4 @@ public class SillasMusicales extends Game {
 
         }, 50L);
     }
-
 }

@@ -9,6 +9,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
+import static datta.core.Core.menuBuilder;
 import static datta.core.content.builders.ColorBuilder.stringToLocation;
 
 public class SimonDiceActions {
@@ -32,6 +33,13 @@ public class SimonDiceActions {
         }
 
         SenderUtil.sendMessage(player, "%core_prefix% &fTodos los jugadores fueron teletransportados.");
+    }
+
+    public static void minigames(Player player){
+        menuBuilder.createMenu(player, "Simón Dice > Minijuegos", 9 * 5, false);
+        menuBuilder.setContents(player, () ->{
+
+        });
     }
 
     public static void playersToLine(Player player) {

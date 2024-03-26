@@ -33,7 +33,7 @@ import static datta.core.content.builders.ColorBuilder.stringToLocation;
 public class Escondite extends Game {
     @Override
     public int endAt() {
-        return 0;
+        return 160;
     }
 
     @Override

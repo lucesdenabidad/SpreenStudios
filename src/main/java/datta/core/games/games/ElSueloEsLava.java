@@ -14,13 +14,11 @@ import datta.core.games.Game;
 import datta.core.services.list.TimerService;
 import datta.core.services.list.ToggleService;
 import datta.core.utils.SenderUtil;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -98,7 +96,7 @@ public class ElSueloEsLava extends Game {
 
                 new MenuBuilder.MenuItem(new ItemBuilder(Material.WOODEN_AXE, "&aResetear mapa").build(), this::resetMap),
 
-                new MenuBuilder.MenuItem(new ItemBuilder(Material.LIME_DYE, "&aAumentar 1 nivel de lava").build(), () ->{
+                new MenuBuilder.MenuItem(new ItemBuilder(Material.LIME_DYE, "&aAumentar 1 nivel de lava").build(), () -> {
                     moreLava(1);
                 }),
                 new MenuBuilder.MenuItem(new ItemBuilder(Material.ORANGE_DYE, "&6Disminuir 1 nivel de lava").build(), this::lessLava),
@@ -204,6 +202,8 @@ public class ElSueloEsLava extends Game {
         replace(cuboid, Material.LAVA, Material.AIR);
     }
 
+
+    public boolean lavaDeath = true;
     @EventHandler
     public void move(PlayerMoveEvent event) {
         Player player = event.getPlayer();
@@ -212,12 +212,39 @@ public class ElSueloEsLava extends Game {
 
         if (!player.isOp()) {
 
+            if (lavaDeath){
+
             if (block.getType() == Material.LAVA) {
                 EventUtils.eliminate(player, true);
+            }
             }
         }
     }
 
+    @EventHandler
+    public void playerLeave(PlayerKickEvent event) {
+        Player player = event.getPlayer();
+        if (!player.isOp()) {
+            int alive = 0;
+
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                if (onlinePlayer.getGameMode() != GameMode.SURVIVAL) {
+                    alive++;
+                }
+            }
+
+            if (alive <= endAt()) {
+
+                cancelLavaTask();
+            }
+        }
+    }
+
+    @Subcommand("lava death")
+    public void death(boolean value){
+        lavaDeath = value;
+        Core.info("");
+    }
 
     @Subcommand("lava door")
     public void door(boolean value) {
