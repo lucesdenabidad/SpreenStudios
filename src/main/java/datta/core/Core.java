@@ -128,10 +128,6 @@ public class Core extends JavaPlugin {
         coreParse.register();
         stopGames();
 
-        // enable all hooks
-        if(Bukkit.getPluginManager().isPluginEnabled("voicechat"))
-            voiceChatHook = new VoiceChatHook(this).enable();
-
         //packet register
         packetManager = new PacketManager(this);
         getServer().getMessenger().registerOutgoingPluginChannel(this, "spreengames:global");

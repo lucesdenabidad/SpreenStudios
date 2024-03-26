@@ -8,6 +8,7 @@ import datta.core.Core;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.utils.SenderUtil;
 import datta.core.weapons.Stick;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
@@ -70,6 +71,12 @@ public class VoiceStick extends Stick {
 
         target.setMetadata(name(), new FixedMetadataValue(Core.getInstance(), !muted));
         SenderUtil.sendMessage(player, "%core_prefix% &aEl jugador "+target.getName()+" fue "+(muted ? "&adesmuteado!" : "&cmuteado!"));
+
+        if(muted){
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user "+target.getName()+" permission set voicechat.speak true");
+        }else{
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user "+target.getName()+" permission set voicechat.speak false");
+        }
     }
 
     @Override

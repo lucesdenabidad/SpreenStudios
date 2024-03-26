@@ -8,6 +8,3 @@ softdepend:
 permissions:
   spreenstudios.voicechat:
     description: Allows to broadcast your voice
-commands:
- info:
-   permission: 'spreenstudios.info'
