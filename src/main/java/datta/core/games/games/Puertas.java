@@ -4,6 +4,7 @@ import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
 import datta.core.commands.CallCMD;
+import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
 import datta.core.content.utils.EventUtils;
 import datta.core.content.utils.build.BuildUtils;
@@ -24,7 +25,10 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.EntityDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -232,6 +236,8 @@ public class Puertas extends Game {
             setParkourGlass(AIR);
             for (Player t : Bukkit.getOnlinePlayers()) {
                 SenderUtil.sendActionbar(t, "&a(!) Tienes 5 minutos parra llegar a la meta!", Sound.ENTITY_ITEM_PICKUP);
+                ItemStack dye = new ItemBuilder(LIME_DYE, "&eCambiar visibilidad de jugadores").build();
+                t.getInventory().setItem(8, dye);
             }
 
             TimerService.bossBarTimer("{time}", BarColor.PURPLE, BarStyle.SOLID, tiempoDeParkour, () -> {
@@ -254,6 +260,8 @@ public class Puertas extends Game {
                     Glow.glowPlayer(onlinePlayer,true);
                     FreezeList.freezePlayer(onlinePlayer, true);
                 }
+
+                onlinePlayer.getInventory().clear();
             }
         }
 
@@ -268,6 +276,7 @@ public class Puertas extends Game {
 
         for (Player t : Bukkit.getOnlinePlayers()) {
             SenderUtil.sendActionbar(t, "&a(✔) " + player.getName() + " llego a la meta!", Sound.BLOCK_NOTE_BLOCK_BANJO);
+            if(!t.isOp()) t.getInventory().clear();
         }
 
         CHECKPOINTS.remove(player);
@@ -329,6 +338,13 @@ public class Puertas extends Game {
                 EventUtils.eliminate(player, true);
             }
         }
+    }
+
+    @EventHandler
+    public void onItemDrop(EntityDropItemEvent event){
+        if(!(event.getEntity() instanceof Player)) return;
+        if(!event.getItemDrop().getItemStack().getType().name().toLowerCase().contains("dye")) return;
+        event.setCancelled(true);
     }
 
     // # Commands
