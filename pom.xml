@@ -80,6 +80,10 @@
             <id>simple-voice-chat</id>
             <url>https://maven.maxhenkel.de/repository/public</url>
         </repository>
+        <repository>
+            <id>spigot-repo</id>
+            <url>https://maven.elmakers.com/repository/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -144,6 +148,12 @@
             <groupId>de.maxhenkel.voicechat</groupId>
             <artifactId>voicechat-api</artifactId>
             <version>2.1.12</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>1.19.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

@@ -8,6 +8,7 @@ import datta.core.content.configuration.Configuration;
 import datta.core.content.configuration.ConfigurationManager;
 import datta.core.content.portals.PortalManager;
 import datta.core.hooks.voicechat.VoiceChatHook;
+import datta.core.netty.PacketManager;
 import datta.core.weapons.GameItem;
 import datta.core.weapons.Stick;
 import datta.core.weapons.Weapon;
@@ -54,6 +55,7 @@ public class Core extends JavaPlugin {
     public static List<Player> disableLog = new ArrayList<>();
     public PortalManager portalManager;
     public VoiceChatHook voiceChatHook;
+    public PacketManager packetManager;
 
     public String defaultTitle = "&5&lEventos";
     public List<String> defaultLines = new ArrayList<>();
@@ -98,6 +100,7 @@ public class Core extends JavaPlugin {
         commandManager.registerCommand(new CallCMD());
         commandManager.registerCommand(new EliminateCMD());
         commandManager.registerCommand(new PutCMD());
+        commandManager.registerCommand(new VisibilityCMD());
 
         Stick.registerStick(new PunchStick());
         Stick.registerStick(new KickStick());
@@ -128,6 +131,10 @@ public class Core extends JavaPlugin {
         // enable all hooks
         if(Bukkit.getPluginManager().isPluginEnabled("voicechat"))
             voiceChatHook = new VoiceChatHook(this).enable();
+
+        //packet register
+        packetManager = new PacketManager(this);
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "spreengames:global");
     }
 
     @Override
