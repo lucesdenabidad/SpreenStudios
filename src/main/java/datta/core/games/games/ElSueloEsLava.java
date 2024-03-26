@@ -128,6 +128,15 @@ public class ElSueloEsLava extends Game {
 
             @Override
             public void run() {
+                int alive = (int) Bukkit.getOnlinePlayers().stream()
+                        .filter(player -> player.getGameMode() != GameMode.SURVIVAL && !player.isOp())
+                        .count();
+
+
+                if (alive <= endAt()) {
+                    cancelLavaTask();
+                }
+
                 if (time == later) {
                     moreLava(levelPerLater);
 
@@ -204,6 +213,7 @@ public class ElSueloEsLava extends Game {
 
 
     public boolean lavaDeath = true;
+
     @EventHandler
     public void move(PlayerMoveEvent event) {
         Player player = event.getPlayer();
@@ -212,11 +222,11 @@ public class ElSueloEsLava extends Game {
 
         if (!player.isOp()) {
 
-            if (lavaDeath){
+            if (lavaDeath) {
 
-            if (block.getType() == Material.LAVA) {
-                EventUtils.eliminate(player, true);
-            }
+                if (block.getType() == Material.LAVA) {
+                    EventUtils.eliminate(player, true);
+                }
             }
         }
     }
@@ -224,26 +234,22 @@ public class ElSueloEsLava extends Game {
     @EventHandler
     public void playerLeave(PlayerKickEvent event) {
         Player player = event.getPlayer();
-        if (!player.isOp()) {
-            int alive = 0;
 
-            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-                if (onlinePlayer.getGameMode() != GameMode.SURVIVAL) {
-                    alive++;
-                }
-            }
+        if (!player.isOp()) {
+            int alive = (int) Bukkit.getOnlinePlayers().stream()
+                    .filter(t -> t.getGameMode() != GameMode.SURVIVAL && !t.isOp())
+                    .count();
 
             if (alive <= endAt()) {
-
                 cancelLavaTask();
             }
         }
     }
 
     @Subcommand("lava death")
-    public void death(boolean value){
+    public void death(boolean value) {
         lavaDeath = value;
-        Core.info("");
+        Core.info("El daño de lava cambio a " + value + ".");
     }
 
     @Subcommand("lava door")
