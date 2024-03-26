@@ -67,7 +67,7 @@ public class OptionsMenu {
                                 "&7 Haz click para activar los mensajes de operador",
                                 "")
                         .build(), () -> {
-                    InfoCMD.toggle(player);
+                    InfoCMD.toggle(player, !InfoCMD.get(player));
                 });
             } else {
                 menuBuilder.setItem(player, slot(7, 2), new ItemBuilder(Material.CRIMSON_SIGN, "&cDejar de recibir registros")
@@ -75,8 +75,7 @@ public class OptionsMenu {
                                 "&7 Haz click para activar los mensajes de operador",
                                 "")
                         .build(), () -> {
-                    InfoCMD.toggle(player);
-                });
+InfoCMD.toggle(player, !InfoCMD.get(player));                });
             }
 
 

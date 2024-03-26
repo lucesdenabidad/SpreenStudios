@@ -25,30 +25,35 @@ public class InfoCMD extends BaseCommand {
     }
 
 
+    public static boolean get(Player player) {
+        return Core.disableLog.contains(player);
+    }
+
     public static void set(Player player, boolean enabled) {
         if (enabled) {
             Core.disableLog.remove(player);
         } else {
-            Core.disableLog.add(player);
+            if (!Core.disableLog.contains(player)) {
+                Core.disableLog.add(player);
+            }
         }
     }
 
     @Subcommand("toggle")
-    public static void toggle(Player player) {
-        boolean currentlyDisabled = Core.disableLog.contains(player);
-        set(player, !currentlyDisabled);
-        String actual = formatBoolean(!currentlyDisabled, "Deshabilitado", "Activado");
+    public static void toggle(Player player, boolean value) {
+        set(player, value);
+        String actual = formatBoolean(value, "Activado", "Deshabilitado");
         SenderUtil.sendMessage(player, "%core_prefix% &eSe ha alternado el buzón de información de administración para ti. Ahora está " + actual + ".");
     }
 
     @Subcommand("toggle")
-    public static void toggle(CommandSender sender, OnlinePlayer onlinePlayer) {
+    public static void toggle(CommandSender sender, OnlinePlayer onlinePlayer, boolean value) {
         Player player = onlinePlayer.getPlayer();
-        boolean currentlyDisabled = Core.disableLog.contains(player);
-        set(player, !currentlyDisabled);
-        String actual = formatBoolean(!currentlyDisabled, "Deshabilitado", "Activado");
 
-        SenderUtil.sendMessage(player, "%core_prefix% &e" + sender.getName() + " te ha alternado el registro de operador, Ahora el estado está en " + actual + ".");
+        set(player, value);
+        String actual = formatBoolean(value, "Activado", "Deshabilitado");
+
+        SenderUtil.sendMessage(player, "%core_prefix% &e" + sender.getName() + " te ha alternado el registro de operador. Ahora el estado está en " + actual + ".");
         SenderUtil.sendMessage(sender, "%core_prefix% &eSe ha alternado el buzón de información de administración para " + player.getName() + ". Ahora está " + actual + ".");
     }
 }

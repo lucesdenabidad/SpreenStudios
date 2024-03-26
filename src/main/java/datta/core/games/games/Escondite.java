@@ -13,7 +13,10 @@ import datta.core.games.Game;
 import datta.core.services.individual.Glow;
 import datta.core.services.list.TimerService;
 import datta.core.utils.SenderUtil;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
@@ -31,6 +34,8 @@ import static datta.core.content.builders.ColorBuilder.stringToLocation;
 @CommandPermission("spreenstudios.games")
 @CommandAlias("games")
 public class Escondite extends Game {
+    public static boolean status = false;
+
     @Override
     public int endAt() {
         return 160;
@@ -56,6 +61,8 @@ public class Escondite extends Game {
     @Override
     @Subcommand("escondite stop")
     public void end() {
+        status = false;
+
         BuildUtils.set(WALLS, Material.BARRIER);
     }
 
@@ -77,9 +84,8 @@ public class Escondite extends Game {
     // # const
 
     public int FIGURE_SEKEER_AT = 60;
-    public int GAME_DURATION = 60 * 5;
-    public String SEEKER = "datta";
-    public Location WAITING_LOC = stringToLocation("607 62 179");
+    public int GAME_DURATION = 60 * 10;
+    public String SEEKER = "SpreenDMC";
 
     public Cuboid WALLS = new Cuboid("556 63 155 565 76 155");
     public BukkitTask TASK;
@@ -92,8 +98,8 @@ public class Escondite extends Game {
         Player player = of.getPlayer();
 
         if (player == null || !of.isOnline()) return;
-
-        player.sendTitle(ChatColor.BLACK + "㐀", "", 0, 99939939, 0);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 900 * 90 * 3 * 3, 255, false, false, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 900 * 90 * 3 * 3, 255, false, false, false));
         SenderUtil.sendActionbar(player, "&7(!) &fFuiste vendado...");
     }
     @Subcommand("escondite teleportseeker")
@@ -115,7 +121,11 @@ public class Escondite extends Game {
         for (Player onlinePlayer : Bukkit.getOnlinePlayers())
             SenderUtil.sendActionbar(onlinePlayer, "&cEl buscador fue liberado, ¡TEN CUIDADO!");
 
-        player.sendTitle("", "", 1,1,1);
+
+
+        player.sendTitle("", "");
+        player.removePotionEffect(PotionEffectType.SLOW);
+        player.removePotionEffect(PotionEffectType.BLINDNESS);
         player.teleport(spawn());
         player.performCommand("kickstick");
 
@@ -123,10 +133,13 @@ public class Escondite extends Game {
     }
 
     public void startGame() {
+        status = true;
+
         figureSeeker();
         BuildUtils.set(WALLS, Material.AIR);
 
         TimerService.bossBarTimer("&fEl buscador sera liberado en &e{time}&f", BarColor.PURPLE, BarStyle.SOLID, FIGURE_SEKEER_AT, () -> {
+
             if (teleportSeeker()) {
                 TimerService.bossBarTimer("&fEl juego acaba en: &e{time}&f", BarColor.PURPLE, BarStyle.SOLID, GAME_DURATION, () -> {
 

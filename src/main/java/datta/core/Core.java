@@ -12,10 +12,7 @@ import datta.core.netty.PacketManager;
 import datta.core.weapons.GameItem;
 import datta.core.weapons.Stick;
 import datta.core.weapons.Weapon;
-import datta.core.weapons.sticks.ColorStick;
-import datta.core.weapons.sticks.KickStick;
-import datta.core.weapons.sticks.KillStick;
-import datta.core.weapons.sticks.PunchStick;
+import datta.core.weapons.sticks.*;
 import datta.core.events.*;
 import datta.core.games.Game;
 import datta.core.games.GameManager;
@@ -106,6 +103,7 @@ public class Core extends JavaPlugin {
         Stick.registerStick(new KickStick());
         Stick.registerStick(new KillStick());
         Stick.registerStick(new ColorStick());
+        Stick.registerStick(new VoiceStick());
 
         Weapon.register(new GameItem());
 

@@ -51,7 +51,7 @@ public class WhitelistService extends Service {
 
     public void refreshList() {
         instance().commandManager.getCommandCompletions().registerCompletion("whitelist_players", c -> {
-            return getWhitelist();
+            return getWhitelist(getType());
         });
     }
 
@@ -84,41 +84,36 @@ public class WhitelistService extends Service {
 
     @CommandCompletion("@players")
     @Subcommand("add")
-    public void addWhitelist(CommandSender sender, String target) {
-        addToWhitelist(target);
+    public void addWhitelist(CommandSender sender, WhitelistType type, String target) {
+        addToWhitelist(type , target);
         SenderUtil.sendMessage(sender, "%core_prefix% &aSe ha agregado a " + target + " a la lista de ingreso.");
     }
 
     @Subcommand("add all")
-    public void addAllWhitelist(CommandSender sender) {
+    public void addAllWhitelist(CommandSender sender, WhitelistType type) {
         for (Player onlinePlayer : Bukkit.getOnlinePlayers())
-            addToWhitelist(onlinePlayer.getName());
+            addToWhitelist(type, onlinePlayer.getName());
 
 
         SenderUtil.sendMessage(sender, "%core_prefix% &aSe han agregado todos los conectados a la lista de ingreso.");
     }
 
-    @Subcommand("addfromfile")
-    public void addFromFile(CommandSender sender) {
-        addFromAddAll();
-        SenderUtil.sendMessage(sender, "%core_prefix% &aSe han agregado todos nombres de la lista a la whitelist.");
-    }
 
     @CommandCompletion("@whitelist_players")
     @Subcommand("remove")
-    public void removeWhitelist(CommandSender sender, String target) {
-        removeFromWhitelist(target);
+    public void removeWhitelist(CommandSender sender,WhitelistType type, String target) {
+        removeFromWhitelist(type, target);
         SenderUtil.sendMessage(sender, "%core_prefix% &cSe ha eliminado a " + target + " a la lista de ingreso.");
     }
 
     @Subcommand("clear")
-    public void clearWhitelist(CommandSender sender) {
+    public void clearWhitelist(CommandSender sender, WhitelistType type) {
 
         List<String> list = new ArrayList<>(List.of("datta", "idpabloski"));
 
         configuration.set("whitelist.list", list);
         configuration.safeSave();
-        getWhitelist().clear();
+        getWhitelist(type).clear();
         refreshList();
 
         SenderUtil.sendMessage(sender, "%core_prefix% &cSe ha limpiado la whitelist.");
@@ -126,8 +121,8 @@ public class WhitelistService extends Service {
 
 
     @Subcommand("list")
-    public void getList(CommandSender sender) {
-        List<String> whitelist = getWhitelist();
+    public void getList(CommandSender sender, WhitelistType type) {
+        List<String> whitelist = getWhitelist(type);
         SenderUtil.sendMessage(sender,
                 "&8&m                                   &f",
                 "&bLista blanca:");
@@ -139,9 +134,14 @@ public class WhitelistService extends Service {
         SenderUtil.sendMessage(sender, "&8&m                                   &f");
     }
 
+    @Subcommand("type")
+    public void settype(CommandSender sender, WhitelistType type) {
+        setWhitelistType(type);
+    }
 
-    public List<String> getWhitelist() {
-        return configuration.getStringList("whitelist.list");
+
+    public List<String> getWhitelist(WhitelistType type) {
+        return configuration.getStringList("whitelist.list."+type.name().toLowerCase());
     }
 
     public boolean status() {
@@ -149,58 +149,73 @@ public class WhitelistService extends Service {
     }
 
 
-
-    public void setStatus( boolean v) {
+    public void setStatus(boolean v) {
         configuration.set("whitelist.status", v);
         configuration.safeSave();
     }
-    public boolean playerIsInWhitelist(String target) {
-        List<String> whitelist = getWhitelist();
+
+    public boolean playerIsInWhitelist(WhitelistType type, String target) {
+        List<String> whitelist = getWhitelist(type);
         return whitelist.contains(target);
     }
 
-    public void addToWhitelist(String target) {
-        List<String> whitelist = getWhitelist();
+    public void addToWhitelist(WhitelistType type, String target) {
+        String typeName = type.name().toLowerCase();
+        List<String> whitelist = getWhitelist(type);
+
         if (!whitelist.contains(target)) {
             whitelist.add(target);
         }
 
-        configuration.set("whitelist.list", whitelist);
+        configuration.set("whitelist.list."+typeName, whitelist);
         configuration.safeSave();
 
         refreshList();
     }
 
-    public void removeFromWhitelist(String target) {
-        List<String> whitelist = getWhitelist();
-        if (whitelist.contains(target)) {
-            whitelist.remove(target);
-        }
+    public void removeFromWhitelist(WhitelistType type, String target) {
+        String typeName = type.name().toLowerCase();
 
-        configuration.set("whitelist.list", whitelist);
+        List<String> whitelist = getWhitelist(type);
+        whitelist.remove(target);
+
+
+        configuration.set("whitelist.list."+typeName, whitelist);
         configuration.safeSave();
 
         refreshList();
     }
 
-    public void addFromAddAll() {
-        List<String> stringList = configuration.getStringList("whitelist.addall", new ArrayList<>());
-        for (String s : stringList) {
-            addToWhitelist(s);
-        }
+    public void setWhitelistType(WhitelistType type) {
+        configuration.set("whitelist.type", type.name().toUpperCase());
+        configuration.safeSave();
+
+        Core.info("El tipo de whitelist fue cambiado a "+type.name()+".");
     }
 
+    public WhitelistType getType() {
+        return WhitelistType.valueOf(configuration.getString("whitelist.type", "STAFF").toUpperCase());
+    }
 
     @EventHandler
     public void onPlayerJoin(AsyncPlayerPreLoginEvent event) {
         String name = event.getName();
 
         if (status()) {
-            if (!playerIsInWhitelist(name)) {
+
+            if (!playerIsInWhitelist(getType(), name)) {
                 Core.info("El jugador " + name + " intentó unirse pero no está en la lista blanca.");
                 event.setKickMessage(color("&cNo estás en la lista de ingreso."));
                 event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_FULL);
             }
         }
+    }
+
+
+    public enum WhitelistType {
+        STAFF,
+        STREAMERS,
+        PLAYERS,
+        ALL
     }
 }

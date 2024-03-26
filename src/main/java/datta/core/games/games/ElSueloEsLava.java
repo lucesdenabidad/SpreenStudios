@@ -18,7 +18,6 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -67,7 +66,7 @@ public class ElSueloEsLava extends Game {
                 SenderUtil.sendSound(t, Sound.BLOCK_NOTE_BLOCK_BASS, 1, 2);
             }
 
-            TimerService.actionbarTimer(30, () -> {
+            TimerService.actionbarTimer(60, () -> {
                 moreLava(2);
 
                 startLavaTask();
@@ -150,6 +149,7 @@ public class ElSueloEsLava extends Game {
 
     public void cancelLavaTask() {
         if (task != null) {
+            Core.info("Tarea &c'LavaTask'&f fue cancelada.");
             task.cancel();
         }
     }
@@ -231,25 +231,10 @@ public class ElSueloEsLava extends Game {
         }
     }
 
-    @EventHandler
-    public void playerLeave(PlayerKickEvent event) {
-        Player player = event.getPlayer();
-
-        if (!player.isOp()) {
-            int alive = (int) Bukkit.getOnlinePlayers().stream()
-                    .filter(t -> t.getGameMode() != GameMode.SURVIVAL && !t.isOp())
-                    .count();
-
-            if (alive <= endAt()) {
-                cancelLavaTask();
-            }
-        }
-    }
-
     @Subcommand("lava death")
     public void death(boolean value) {
         lavaDeath = value;
-        Core.info("El daño de lava cambio a " + value + ".");
+        Core.info("El daño de lava cambio a &c" + value + "&f.");
     }
 
     @Subcommand("lava door")

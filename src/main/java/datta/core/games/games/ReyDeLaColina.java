@@ -125,6 +125,7 @@ public class ReyDeLaColina extends Game {
                 "&7 &c• %core_top_3%",
                 "&7 &c• %core_top_4%",
                 "&7 &c• %core_top_5%",
+                "&7 &c• %core_top_6%",
                 "",
                 "&f Puntos: &e%core_points%",
                 "&f Tiempo: &e%core_bossbartime%",
@@ -158,8 +159,15 @@ public class ReyDeLaColina extends Game {
         if (i <= list.size() && i > 0) {
             Map.Entry<Player, Integer> entry = list.get(i - 1);
             Player player = entry.getKey();
+            String name = player.getName();
+            int maxCharacters = 8;
+
+            if (name.length() > maxCharacters) {
+                name = name.substring(0, maxCharacters);
+            }
+
             int points = entry.getValue();
-            return color("&7" + player.getName() + ": &a" + points);
+            return color("&7" + name + ": &a" + points);
         } else {
             return "...";
         }

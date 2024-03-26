@@ -149,15 +149,24 @@ public class SillasMusicales extends Game {
     }
 
 
+        Cuboid SPAWN_SECTION = new Cuboid("554 4 445 550 4 453");
+
+    @Subcommand("sillas chairs spawn")
     public void spawnChairs() {
-        List<String> allowedLocations = List.of("652 5 451", "654 5 452", "656 5 451", "657 5 449", "656 5 447", "654 5 446", "652 5 447", "651 5 449");
 
-        for (String allowedLocation : allowedLocations) {
-            Location location = stringToLocation(allowedLocation);
+        int alive = 6;
 
+        for (int i = 0; i < alive; i++) {
+            Location location = SPAWN_SECTION.getRandomLocation();
             Block block = location.getBlock();
             block.setType(Material.LIGHTNING_ROD);
         }
+    }
+
+
+    @Subcommand("sillas chairs clear")
+    public void cleanChairs() {
+        BuildUtils.set(SPAWN_SECTION,Material.AIR);
     }
 
 
@@ -209,7 +218,7 @@ public class SillasMusicales extends Game {
     }
     @Subcommand("sillas clean")
     public void clean(Player player) {
-        BuildUtils.schematic(stringToLocation("1 99 134"), "sillitas.schem");
+
     }
 
 

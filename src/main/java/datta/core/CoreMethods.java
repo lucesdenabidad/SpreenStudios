@@ -11,7 +11,6 @@ public class CoreMethods {
         commandService.registerService(new ScreenColorService());
         commandService.registerService(new WhitelistService());
         commandService.registerService(new TimerService());
-        commandService.registerService(new StreamerService());
         commandService.registerService(new CinemaService());
         commandService.registerService(new ToggleService());
         commandService.registerService(new LightService());

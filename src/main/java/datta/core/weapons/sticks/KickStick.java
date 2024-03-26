@@ -6,8 +6,9 @@ import co.aikar.commands.annotation.Default;
 import co.aikar.commands.bukkit.contexts.OnlinePlayer;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.utils.EventUtils;
-import datta.core.weapons.Stick;
+import datta.core.games.games.Escondite;
 import datta.core.utils.SenderUtil;
+import datta.core.weapons.Stick;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
@@ -20,6 +21,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 
 @CommandPermission("spreenstudios.sticks")
@@ -69,6 +72,12 @@ public class KickStick extends Stick {
 
                 if (event.getHand() != EquipmentSlot.HAND) return;
 
+
+                if (Escondite.status) {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 7 * 20, 1, false, false));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 7 * 20, 1, false, false));
+                }
+
                 EventUtils.eliminate(target, true);
             }
         }
@@ -88,8 +97,11 @@ public class KickStick extends Stick {
             ItemStack itemInMainHand = inventory.getItemInMainHand();
 
             if (itemInMainHand.isSimilar(item())) {
+                if (Escondite.status) {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 7 * 20, 1, false, false));
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 7 * 20, 1, false, false));
+                }
 
-                // Lógica para aplicar el efecto de interacción al jugador objetivo
                 EventUtils.eliminate(target, true);
             }
         }
