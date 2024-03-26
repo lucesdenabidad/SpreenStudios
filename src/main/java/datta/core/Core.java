@@ -2,6 +2,7 @@ package datta.core;
 
 import co.aikar.commands.Locales;
 import co.aikar.commands.PaperCommandManager;
+import com.google.gson.JsonObject;
 import datta.core.commands.*;
 import datta.core.content.builders.MenuBuilder;
 import datta.core.content.configuration.Configuration;
@@ -55,6 +56,7 @@ public class Core extends JavaPlugin {
     public PacketManager packetManager;
 
     public String defaultTitle = "&5&lEventos";
+    public boolean visible = false;
     public List<String> defaultLines = new ArrayList<>();
 
     public static void setEndAt(int i) {
@@ -168,5 +170,22 @@ public class Core extends JavaPlugin {
         for (Game game : gameManager.games) {
             game.end();
         }
+    }
+
+    public void setVisible(boolean allow){
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("value", allow);
+
+        visible = allow;
+
+        Bukkit.getOnlinePlayers().forEach(player ->{
+            Core.getInstance().packetManager.sendGlobalPacket(player, "setrenderlock", jsonObject);
+        });
+    }
+
+    public void setVisible(Player player){
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("value", visible);
+        Core.getInstance().packetManager.sendGlobalPacket(player, "setrenderlock", jsonObject);
     }
 }

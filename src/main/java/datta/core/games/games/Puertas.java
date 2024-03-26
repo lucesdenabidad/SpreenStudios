@@ -3,6 +3,7 @@ package datta.core.games.games;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
+import datta.core.Core;
 import datta.core.commands.CallCMD;
 import datta.core.content.builders.ItemBuilder;
 import datta.core.content.builders.MenuBuilder;
@@ -26,6 +27,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDropItemEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -232,6 +234,7 @@ public class Puertas extends Game {
 
 
     public void startParkour() {
+        Core.getInstance().setVisible(true);
         TimerService.bossBarTimer("{time}", BarColor.PURPLE, BarStyle.SOLID, tiempoParaIniciarParkour, () -> {
             setParkourGlass(AIR);
             for (Player t : Bukkit.getOnlinePlayers()) {
@@ -264,6 +267,7 @@ public class Puertas extends Game {
                 onlinePlayer.getInventory().clear();
             }
         }
+        Core.getInstance().setVisible(false);
 
         TimerService.removeBossBar();
         TimerService.removeActionbar();
@@ -345,6 +349,11 @@ public class Puertas extends Game {
         if(!(event.getEntity() instanceof Player)) return;
         if(!event.getItemDrop().getItemStack().getType().name().toLowerCase().contains("dye")) return;
         event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onJoinParkour(PlayerJoinEvent event){
+        Core.getInstance().setVisible(event.getPlayer());
     }
 
     // # Commands
