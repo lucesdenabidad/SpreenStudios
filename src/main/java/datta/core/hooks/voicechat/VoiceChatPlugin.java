@@ -31,7 +31,7 @@ public class VoiceChatPlugin implements VoicechatPlugin {
         if(player.hasMetadata("voicestick"))
             muted = player.getMetadata("voicestick").get(0).asBoolean();
 
-        if(muted)
+        if(muted && !player.hasPermission("spreenstudios.voicechat"))
             event.cancel();
     }
 }
