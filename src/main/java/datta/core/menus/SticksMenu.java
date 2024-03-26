@@ -5,6 +5,7 @@ import datta.core.weapons.Stick;
 import datta.core.weapons.sticks.KickStick;
 import datta.core.weapons.sticks.KillStick;
 import datta.core.weapons.sticks.PunchStick;
+import datta.core.weapons.sticks.VoiceStick;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
@@ -21,6 +22,7 @@ public class SticksMenu {
 
             int index = 4;
             List<Stick> stickList = new ArrayList<>(List.of(new PunchStick(), new KillStick(), new KickStick()));
+            stickList.add(new VoiceStick());
 
             for (Stick stick : stickList) {
                 menuBuilder.setItem(player, slot(index, 2), stick.item(), () -> {
