@@ -3,6 +3,10 @@ package datta.core.content.utils;
 import datta.core.Core;
 import datta.core.content.builders.FireworkBuilder;
 import datta.core.utils.SenderUtil;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.model.user.User;
+import net.luckperms.api.model.user.UserManager;
 import org.bukkit.*;
 import org.bukkit.entity.Chicken;
 import org.bukkit.entity.Player;
@@ -49,6 +53,18 @@ public class EventUtils {
         }
     }
 
+    public static boolean isStreamer(Player player) {
+        LuckPerms luckPerms = LuckPermsProvider.get();
+        UserManager userManager = luckPerms.getUserManager();
+        User user = userManager.getUser(player.getUniqueId());
+
+        if (user != null && user.getPrimaryGroup().equalsIgnoreCase("streamer")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 
     public static void eliminate(Player player, boolean kick) {
         World world = player.getWorld();
@@ -63,7 +79,12 @@ public class EventUtils {
 
 
         if (kick) {
-            player.kickPlayer(color("&c¡Gracias por jugar!"));
+            if (!isStreamer(player)) {
+                player.kickPlayer(color("&c¡Gracias por jugar!"));
+            } else {
+                player.setGameMode(GameMode.SPECTATOR);
+            }
+
         } else {
             player.setHealth(0);
         }
@@ -71,6 +92,8 @@ public class EventUtils {
         for (Player t : Bukkit.getOnlinePlayers()) {
             SenderUtil.sendActionbar(t, "&c(☠) " + player.getName() + "&f fue eliminado &7(%core_alive%/%core_endat%)");
         }
+
+        Core.info("El jugador &c" +player.getName()+"&f fue eliminado &7(%core_alive%/%core_endat%)");
     }
 
     public static String formatBoolean(boolean value, String isTrue, String isFalse) {
@@ -192,5 +215,9 @@ public class EventUtils {
             return true;
         }
         return false;
+    }
+
+    public static boolean hasColor(Player target) {
+        return COLORS.containsKey(target);
     }
 }

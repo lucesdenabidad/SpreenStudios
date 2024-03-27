@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 
 import static datta.core.content.builders.ColorBuilder.stringToLocation;
 import static datta.core.content.utils.EventUtils.isStaff;
-import static datta.core.content.utils.build.BuildUtils.replace;
 
 @CommandPermission("spreenstudios.games")
 @CommandAlias("games")
@@ -48,7 +47,7 @@ public class SillasMusicales extends Game {
 
     @Override
     public Location spawn() {
-        return stringToLocation("654 3 431 0 0");
+        return stringToLocation("552 4 449");
     }
 
     @Override
@@ -69,7 +68,8 @@ public class SillasMusicales extends Game {
             for (Player t : Bukkit.getOnlinePlayers()) {
                 t.stopAllSounds();
             }
-            removeChairs();
+
+            cleanChairs();
         });
     }
 
@@ -100,22 +100,22 @@ public class SillasMusicales extends Game {
     }
 
 
-    List<MenuBuilder.MenuItem> menuItems = new ArrayList<>(List.of(
-            new MenuBuilder.MenuItem(new ItemBuilder(Material.LIME_DYE, "&aPrender Musica").build(), () -> {
+    List<MenuBuilder.MenuItem> items = new ArrayList<>(List.of(
+            new MenuBuilder.MenuItem(new ItemBuilder(Material.SCUTE, "&aPrender Musica").build(), () -> {
                 playOrStopMusic(true);
             }),
 
-            new MenuBuilder.MenuItem(new ItemBuilder(Material.RED_DYE, "&cApagar Musica").build(), () -> {
+            new MenuBuilder.MenuItem(new ItemBuilder(Material.NETHER_WART, "&cApagar Musica").build(), () -> {
                 playOrStopMusic(false);
             }),
 
-            new MenuBuilder.MenuItem(new ItemBuilder(Material.TNT_MINECART, "&cQuitar sillas").build(), this::removeChairs),
-            new MenuBuilder.MenuItem(new ItemBuilder(Material.BARRIER, "&cEliminar jugadores").build(), this::removePlayers)
+            new MenuBuilder.MenuItem(new ItemBuilder(Material.SPAWNER, "&aAparecer sillas").build(), this::spawnChairs),
+            new MenuBuilder.MenuItem(new ItemBuilder(Material.TNT_MINECART, "&cQuitar sillas").build(), this::cleanChairs)
     ));
 
     public void getItems(Player player) {
         PlayerInventory inventory = player.getInventory();
-        for (MenuBuilder.MenuItem menuItem : menuItems) {
+        for (MenuBuilder.MenuItem menuItem : items) {
             inventory.addItem(menuItem.getItemStack());
         }
 
@@ -130,7 +130,7 @@ public class SillasMusicales extends Game {
         if (event.hasItem()) {
             ItemStack item = event.getItem();
 
-            for (MenuBuilder.MenuItem menuItem : menuItems) {
+            for (MenuBuilder.MenuItem menuItem : items) {
                 if (item.isSimilar(menuItem.getItemStack())) {
                     menuItem.executeAction(player);
                     event.setCancelled(true);
@@ -140,27 +140,25 @@ public class SillasMusicales extends Game {
         }
     }
 
-    public void removeChairs() {
-        Cuboid cuboid = new Cuboid("659 5 454 650 4 445");
-        replace(cuboid, Material.LIGHTNING_ROD, Material.AIR);
-
-        for (Player onlinePlayer : Bukkit.getOnlinePlayers())
-            onlinePlayer.leaveVehicle();
-    }
 
 
-        Cuboid SPAWN_SECTION = new Cuboid("554 4 445 550 4 453");
+        Cuboid SPAWN_SECTION = new Cuboid("547 4 443 557 4 455");
 
     @Subcommand("sillas chairs spawn")
     public void spawnChairs() {
 
-        int alive = 6;
+        int alive = (int) Bukkit.getOnlinePlayers().stream()
+                .filter(player -> player.getGameMode() == GameMode.SURVIVAL && !player.isOp())
+                .count();
 
-        for (int i = 0; i < alive; i++) {
+
+        for (int i = 0; i < alive - 1; i++) {
             Location location = SPAWN_SECTION.getRandomLocation();
             Block block = location.getBlock();
             block.setType(Material.LIGHTNING_ROD);
+            Core.info("Se genero una silla para el jugador "+i+".");
         }
+
     }
 
 

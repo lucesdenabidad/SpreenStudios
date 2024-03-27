@@ -4,6 +4,7 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
+import datta.core.Core;
 import datta.core.cinematicas.SillitasPreview;
 import datta.core.content.builders.ItemBuilder;
 import org.bukkit.Material;
@@ -28,5 +29,10 @@ public class DevCMD extends BaseCommand {
     @Subcommand("testcinema")
     public void testcinema(Player player) {
         SillitasPreview.start(player);
+    }
+
+    @Subcommand("setmax")
+    public void setmax(Player player, int max) {
+        Core.setEndAt(max);
     }
 }

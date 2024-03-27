@@ -1,7 +1,9 @@
 package datta.core.services.list;
 
 import co.aikar.commands.annotation.CommandAlias;
+import co.aikar.commands.annotation.CommandCompletion;
 import co.aikar.commands.annotation.CommandPermission;
+import co.aikar.commands.bukkit.contexts.OnlinePlayer;
 import datta.core.Core;
 import datta.core.services.Service;
 import datta.core.utils.SenderUtil;
@@ -52,8 +54,19 @@ public class VanishService extends Service implements Listener {
     }
 
     @CommandPermission("spreenstudios.vanish")
-        @CommandAlias("vanish|v")
+    @CommandAlias("vanish|v")
     public void vanishCMD(Player player) {
+        boolean inVanish = isInVanish(player);
+        setVanish(player, !inVanish);
+
+        SenderUtil.sendMessage(player, "%core_prefix% &eTu visibilidad hacia los demas fue modificada a " + isInVanish(player) + ".");
+    }
+
+    @CommandCompletion("@players")
+    @CommandPermission("spreenstudios.vanish")
+    @CommandAlias("vanish|v")
+    public void vanishCMD(OnlinePlayer playerr) {
+        Player player = playerr.getPlayer();
         boolean inVanish = isInVanish(player);
         setVanish(player, !inVanish);
 

@@ -20,7 +20,7 @@ import static datta.core.content.builders.ColorBuilder.color;
 @CommandPermission("|spreenstudios.*|spreenstudios.whitelist")
 @CommandAlias("whitelist|wl|swl|xwl|uwl|pwl|wl|listablanca|lista")
 public class WhitelistService extends Service {
-    Configuration configuration = Core.getInstance().configurationManager.getConfig("configuration.yml");
+    Configuration configuration = Core.getInstance().configurationManager.getConfig("whitelist.yml");
 
     @Override
     public Core instance() {
@@ -82,10 +82,10 @@ public class WhitelistService extends Service {
         SenderUtil.sendMessage(sender, "%core_prefix% &cLa lista blanca se desactivo con exito.");
     }
 
-    @CommandCompletion("@players")
+    @CommandCompletion(" @players")
     @Subcommand("add")
     public void addWhitelist(CommandSender sender, WhitelistType type, String target) {
-        addToWhitelist(type , target);
+        addToWhitelist(type, target);
         SenderUtil.sendMessage(sender, "%core_prefix% &aSe ha agregado a " + target + " a la lista de ingreso.");
     }
 
@@ -99,9 +99,9 @@ public class WhitelistService extends Service {
     }
 
 
-    @CommandCompletion("@whitelist_players")
+    @CommandCompletion(" @whitelist_players")
     @Subcommand("remove")
-    public void removeWhitelist(CommandSender sender,WhitelistType type, String target) {
+    public void removeWhitelist(CommandSender sender, WhitelistType type, String target) {
         removeFromWhitelist(type, target);
         SenderUtil.sendMessage(sender, "%core_prefix% &cSe ha eliminado a " + target + " a la lista de ingreso.");
     }
@@ -109,9 +109,10 @@ public class WhitelistService extends Service {
     @Subcommand("clear")
     public void clearWhitelist(CommandSender sender, WhitelistType type) {
 
-        List<String> list = new ArrayList<>(List.of("datta", "idpabloski"));
+        List<String> list = new ArrayList<>(List.of("datta", "idpabloski", "Badendingg"));
 
-        configuration.set("whitelist.list", list);
+        String lowerCase = type.name().toLowerCase();
+        configuration.set("whitelist." + lowerCase, list);
         configuration.safeSave();
         getWhitelist(type).clear();
         refreshList();
@@ -141,11 +142,11 @@ public class WhitelistService extends Service {
 
 
     public List<String> getWhitelist(WhitelistType type) {
-        return configuration.getStringList("whitelist.list."+type.name().toLowerCase());
+        return configuration.getStringList("whitelist." + type.name().toLowerCase(), new ArrayList<>(List.of("null")));
     }
 
     public boolean status() {
-        return configuration.getBoolean("whitelist.status", false);
+        return configuration.getBoolean("whitelist.status", true);
     }
 
 
@@ -167,7 +168,7 @@ public class WhitelistService extends Service {
             whitelist.add(target);
         }
 
-        configuration.set("whitelist.list."+typeName, whitelist);
+        configuration.set("whitelist." + typeName, whitelist);
         configuration.safeSave();
 
         refreshList();
@@ -180,7 +181,7 @@ public class WhitelistService extends Service {
         whitelist.remove(target);
 
 
-        configuration.set("whitelist.list."+typeName, whitelist);
+        configuration.set("whitelist." + typeName, whitelist);
         configuration.safeSave();
 
         refreshList();
@@ -190,7 +191,7 @@ public class WhitelistService extends Service {
         configuration.set("whitelist.type", type.name().toUpperCase());
         configuration.safeSave();
 
-        Core.info("El tipo de whitelist fue cambiado a "+type.name()+".");
+        Core.info("El tipo de whitelist fue cambiado a " + type.name() + ".");
     }
 
     public WhitelistType getType() {
@@ -202,14 +203,26 @@ public class WhitelistService extends Service {
         String name = event.getName();
 
         if (status()) {
+            WhitelistType type = getType();
 
-            if (!playerIsInWhitelist(getType(), name)) {
-                Core.info("El jugador " + name + " intentó unirse pero no está en la lista blanca.");
-                event.setKickMessage(color("&cNo estás en la lista de ingreso."));
-                event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_FULL);
+            if (type == WhitelistType.ALL) {
+                if (playerIsInWhitelist(WhitelistType.STREAMERS, name) || playerIsInWhitelist(WhitelistType.STAFF, name) || playerIsInWhitelist(WhitelistType.PLAYERS, name)) {
+                    // Permitir que el jugador entre si está en alguna de las tres listas
+                } else {
+                    Core.info("El jugador " + name + " intentó unirse pero no está en ninguna de las listas blancas.");
+                    event.setKickMessage(color("&cNo estás en ninguna lista de ingreso permitida."));
+                    event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_FULL);
+                }
+            } else {
+                if (!playerIsInWhitelist(type, name)) {
+                    Core.info("El jugador " + name + " intentó unirse pero no está en la lista blanca de tipo: " + type.toString());
+                    event.setKickMessage(color("&cNo estás en la lista de ingreso."));
+                    event.setLoginResult(AsyncPlayerPreLoginEvent.Result.KICK_FULL);
+                }
             }
         }
     }
+
 
 
     public enum WhitelistType {

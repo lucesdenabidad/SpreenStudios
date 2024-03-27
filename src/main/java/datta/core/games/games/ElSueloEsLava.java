@@ -128,13 +128,8 @@ public class ElSueloEsLava extends Game {
             @Override
             public void run() {
                 int alive = (int) Bukkit.getOnlinePlayers().stream()
-                        .filter(player -> player.getGameMode() != GameMode.SURVIVAL && !player.isOp())
+                        .filter(player -> player.getGameMode() == GameMode.SURVIVAL && !player.isOp())
                         .count();
-
-
-                if (alive <= endAt()) {
-                    cancelLavaTask();
-                }
 
                 if (time == later) {
                     moreLava(levelPerLater);

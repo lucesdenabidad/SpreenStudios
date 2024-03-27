@@ -144,16 +144,19 @@ public class Core extends JavaPlugin {
         }
 
         // disable all hooks
-        if(voiceChatHook != null)
+        if (voiceChatHook != null)
             voiceChatHook.disable();
     }
 
     public static void info(String... s) {
         for (String e : s) {
             SenderUtil.sendMessage(Bukkit.getServer().getConsoleSender(), "&7[SpreenStudios] [Log] &r" + e);
+
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-                if (onlinePlayer.isOp() && disableLog.contains(onlinePlayer)) {
-                    SenderUtil.sendMessage(onlinePlayer, "&8[Log] &r" + e);
+                if (!onlinePlayer.getName().equalsIgnoreCase("SpreenDMC")) {
+                    if (onlinePlayer.isOp() && !disableLog.contains(onlinePlayer)) {
+                        SenderUtil.sendMessage(onlinePlayer, "&8[Log] &r" + e);
+                    }
                 }
             }
         }

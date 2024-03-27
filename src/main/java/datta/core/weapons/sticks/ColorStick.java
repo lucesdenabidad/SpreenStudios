@@ -107,7 +107,13 @@ public class ColorStick extends Stick {
 
 
     public void function(Player operator, Player target) {
-        EventUtils.addPlayerColor(target, ASSIGN_COLOR);
-        SenderUtil.sendMessage(operator, "%core_prefix% &fSe le asigno el color "+ASSIGN_COLOR+"(*) &fa "+target.getName()+".");
+        if (!EventUtils.hasColor(target)) {
+            EventUtils.addPlayerColor(target, ASSIGN_COLOR);
+            SenderUtil.sendMessage(operator, "%core_prefix% &fSe le asigno el color " + ASSIGN_COLOR + "(*) &fa " + target.getName() + ".");
+        } else {
+            EventUtils.removePlayerColor(target);
+            SenderUtil.sendMessage(operator, "%core_prefix% &fSe le quito el color " + ASSIGN_COLOR + "(*) &fa " + target.getName() + ".");
+
+        }
     }
 }

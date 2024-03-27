@@ -26,15 +26,6 @@ public class SimonDiceActions {
         SenderUtil.sendMessage(player, "%core_prefix% &fLimpiaste el mapa de Simón Dice con éxito");
     }
 
-    public static void teleport(Player player) {
-        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            onlinePlayer.teleport(center);
-            SenderUtil.sendActionbar(onlinePlayer, "&d(!) &fEstas siendo teletransportado", Sound.BLOCK_BUBBLE_COLUMN_BUBBLE_POP);
-        }
-
-        SenderUtil.sendMessage(player, "%core_prefix% &fTodos los jugadores fueron teletransportados.");
-    }
-
     public static void minigames(Player player){
         menuBuilder.createMenu(player, "Simón Dice > Minijuegos", 9 * 5, false);
         menuBuilder.setContents(player, () ->{
@@ -79,5 +70,12 @@ public class SimonDiceActions {
                 teleportZ += 2; // Incrementa la coordenada Z para mover al siguiente jugador hacia abajo
             }
         }
+    }
+
+    public static void sticks(Player player) {
+        player.performCommand("kickstick");
+        player.performCommand("punchstick");
+        player.performCommand("voicestick");
+        player.performCommand("colorstick");
     }
 }
